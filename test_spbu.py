@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import unittest
 from datetime import datetime, timedelta, date
 
@@ -47,8 +50,8 @@ class TestSpbu(unittest.TestCase):
         assert spbu.get_educator_events(11)
 
     def test_search_educator(self):
-        for educator_name in (u"Абабков", u"Горбунов Иван",
-                              u"Мамкаева Мария Алексеевна", "None"):
+        for educator_name in ("Абабков", "Горбунов Иван",
+                              "Мамкаева Мария Алексеевна", "None"):
             assert spbu.search_educator(educator_name)
 
     @unittest.expectedFailure
