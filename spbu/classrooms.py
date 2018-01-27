@@ -6,28 +6,34 @@ from spbu.apiexception import ApiException
 from spbu.consts import main_url
 
 
-def create_string_from_datetime(dt: datetime):
+def _create_string_from_datetime(dt: datetime):
     """
     Creates a specific string from a datetime object.
     :param dt: A datetime object.
+    :type dt: datetime
     :return: Specific sting.
+    :rtype: str
     """
     return dt.strftime("%Y%m%d%H%M")
 
 
-def is_classroom_busy(oid: str, start: datetime, end: datetime):
+def is_classroom_busy(oid, start, end):
     """
     Checks whether a given classroom is busy in a specified interval
     or it's part.
-    :raises: ApiException: if `response status code` is not 200.
-    :param: oid: The classroom's id.
-    :param: start: The interval's start.
-    :param: end: The interval's end.
+    :param oid: The classroom's id.
+    :type oid: str
+    :param start: The interval's start.
+    :type start: datetime
+    :param end: The interval's end.
+    :type end: datetime
     :return: The result parsed to a JSON dictionary.
+    :rtype: dict
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "classrooms/{0}/isbusy/{1}/{2}"
-    start = create_string_from_datetime(start)
-    end = create_string_from_datetime(end)
+    start = _create_string_from_datetime(start)
+    end = _create_string_from_datetime(end)
 
     result = get(url=main_url + sub_url.format(oid, start, end))
 

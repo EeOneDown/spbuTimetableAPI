@@ -9,8 +9,9 @@ from spbu.consts import main_url
 def get_extracur_divisions():
     """
     Gets extracurricular divisions.
-    :raises: ApiException: if `response status code` is not 200.
     :return: The result parsed to a JSON dictionary.
+    :rtype: list
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "extracur/divisions"
 
@@ -24,13 +25,16 @@ def get_extracur_divisions():
     return result.json()
 
 
-def get_extracur_events(alias: str, from_date: date = None):
+def get_extracur_events(alias, from_date=None):
     """
     Get extracurricular events for a given division.
-    :raises: ApiException: if `response status code` is not 200.
-    :param: alias: The division's short name code (alias).
-    :param: from_date: (Optional) The date the events start from.
+    :param alias: The division's short name code (alias).
+    :type alias: str
+    :param from_date: (Optional) The date the events start from.
+    :type from_date: date
     :return: The result parsed to a JSON dictionary.
+    :rtype: dict
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "extracur/divisions/{0}/events"
     params = {}

@@ -4,12 +4,14 @@ from spbu.apiexception import ApiException
 from spbu.consts import main_url
 
 
-def get_groups(program_id: int):
+def get_groups(program_id):
     """
     Gets a given study program's student groups for the current study year.
-    :raises: ApiException: if `response status code` is not 200.
-    :param: program_id: The study program's id.
+    :param program_id: The study program's id.
+    :type program_id: int
     :return: The result parsed to a JSON dictionary.
+    :rtype: dict
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "progams/{0}/groups"
 

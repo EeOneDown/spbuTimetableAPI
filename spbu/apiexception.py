@@ -1,3 +1,7 @@
+from requests import models
+from spbu.consts import error_msg
+
+
 class ApiException(Exception):
     """
     This class represents an Exception thrown when a call to the SPbU TimeTable
@@ -8,7 +12,14 @@ class ApiException(Exception):
     as failed.
     """
     def __init__(self, msg, function_name, result):
-        from spbu.consts import error_msg
+        """
+        :param msg: error message
+        :type msg: str
+        :param function_name: The name of function which raise the exception
+        :type function_name: str
+        :param result: request response
+        :type result: models.Response
+        """
         super(ApiException, self).__init__(error_msg.format(msg))
         self.function_name = function_name
         self.result = result

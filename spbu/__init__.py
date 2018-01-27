@@ -1,3 +1,7 @@
+# import classes
+from spbu.apiexception import ApiException
+
+# import functions
 from spbu.addresses import get_addresses, get_classrooms
 from spbu.classrooms import is_classroom_busy
 from spbu.educators import get_educator_events, search_educator

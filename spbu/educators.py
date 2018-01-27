@@ -4,13 +4,16 @@ from spbu.apiexception import ApiException
 from spbu.consts import main_url
 
 
-def get_educator_events(educator_id: int, next_term=False):
+def get_educator_events(educator_id, next_term=False):
     """
     Gets an educator's events for the current study term.
-    :raises: ApiException: if `response status code` is not 200.
-    :param: educator_id: The educator's id.
-    :param: next_term: (Optional) Whether to show the events for the next term.
+    :param educator_id: The educator's id.
+    :type educator_id: int
+    :param next_term: (Optional) Whether to show the events for the next term.
+    :type next_term: bool
     :return: The result parsed to a JSON dictionary.
+    :rtype: dict
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "educators/{0}/events"
     params = {"showNextTerm": int(next_term)}
@@ -26,12 +29,14 @@ def get_educator_events(educator_id: int, next_term=False):
     return result.json()
 
 
-def search_educator(query: str):
+def search_educator(query):
     """
     Gets educators by searching their's last name or a part of last name.
-    :raises: ApiException: if `response status code` is not 200.
-    :param: query: The last name search query.
+    :param query: The last name search query.
+    :type query: str
     :return: The result parsed to a JSON dictionary.
+    :rtype: dict
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "educators/search/{0}"
 

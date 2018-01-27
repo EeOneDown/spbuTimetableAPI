@@ -7,8 +7,9 @@ from spbu.consts import main_url
 def get_study_divisions():
     """
     Gets study divisions.
-    :raises: ApiException: if `response status code` is not 200.
     :return: The result parsed to a JSON dictionary.
+    :rtype: list
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "study/divisions"
 
@@ -22,12 +23,14 @@ def get_study_divisions():
     return result.json()
 
 
-def get_program_levels(alias: str):
+def get_program_levels(alias):
     """
     Gets study programs with levels for a given study division.
-    :raises: ApiException: if `response status code` is not 200.
-    :param: alias: The division's short name code (alias).
+    :param alias: The division's short name code (alias).
+    :type alias: str
     :return: The result parsed to a JSON dictionary.
+    :rtype: list
+    :raises ApiException: if `response status code` is not 200.
     """
     sub_url = "study/divisions/{0}/programs/levels"
 
