@@ -47,8 +47,8 @@ class TestSpbu(unittest.TestCase):
         assert spbu.get_educator_events(11)
 
     def test_search_educator(self):
-        for educator_name in ("Абабков", "Горбунов Иван",
-                              "Мамкаева Мария Алексеевна", "None"):
+        for educator_name in (u"Абабков", u"Горбунов Иван",
+                              u"Мамкаева Мария Алексеевна", "None"):
             assert spbu.search_educator(educator_name)
 
     @unittest.expectedFailure
@@ -72,10 +72,12 @@ class TestSpbu(unittest.TestCase):
     def test_group_events(self):
         for group_id in (14887, 13722, 15158):
             assert spbu.get_group_events(group_id)
-            assert spbu.get_group_events(group_id, "Primary")
-            assert spbu.get_group_events(group_id, "Final", date.today())
-            assert spbu.get_group_events(group_id, "All", date.today(),
-                                         date.today() + timedelta(days=10))
+            assert spbu.get_group_events(group_id, lessons_type="Primary")
+            assert spbu.get_group_events(group_id, from_date=date.today(),
+                                         lessons_type="Final")
+            assert spbu.get_group_events(group_id, date.today(),
+                                         date.today() + timedelta(days=10),
+                                         lessons_type="All")
 
     @unittest.expectedFailure
     def test_group_events_fail_id(self):
