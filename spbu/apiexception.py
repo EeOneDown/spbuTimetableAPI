@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from requests import models
+
 from spbu.consts import error_msg
 
 
