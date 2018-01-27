@@ -4,7 +4,7 @@ from spbu.apiexception import ApiException
 from spbu.consts import main_url
 
 
-def get_educators_events(educator_id: int, next_term=False):
+def get_educator_events(educator_id: int, next_term=False):
     """
     Gets an educator's events for the current study term.
     :raises: ApiException: if `response status code` is not 200.
@@ -21,7 +21,7 @@ def get_educators_events(educator_id: int, next_term=False):
     if result.status_code != 200:
         msg = 'The server returned HTTP {0} {1}. Response body:\n[{2}]' \
             .format(result.status_code, result.reason, result.text)
-        raise ApiException(msg, "Get educators events", result)
+        raise ApiException(msg, "Get educator events", result)
 
     return result.json()
 
