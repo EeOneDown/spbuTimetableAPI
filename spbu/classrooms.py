@@ -6,7 +6,7 @@ from spbu.apiexception import ApiException
 from spbu.consts import main_url
 
 
-def _create_string_from_datetime(dt: datetime):
+def _create_string_from_datetime(dt):
     """
     Creates a specific string from a datetime object.
     :param dt: A datetime object.
