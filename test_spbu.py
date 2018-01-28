@@ -71,7 +71,7 @@ class TestSpbu(unittest.TestCase):
         for alias in ("POLS", "SOCL", "INTD", "GSOM"):
             assert spbu.get_program_levels(alias)
 
-    if sys.version_info >= (2, 5):
+    if sys.version_info >= (2, 7):
         @unittest.expectedFailure
         def test_classrooms_fail(self):
             assert spbu.get_classrooms(oid="TEST")
