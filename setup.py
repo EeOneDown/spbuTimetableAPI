@@ -8,7 +8,7 @@ def readme():
 
 
 setup(name='spbuTimetableAPI',
-      version='0.1.2',
+      version='0.1.3',
       description='Python SPbU TimeTable API.',
       long_description=readme(),
       author='EeOneDown',
