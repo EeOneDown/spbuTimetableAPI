@@ -1,14 +1,19 @@
 language: python
 python:
-    - "2.6"
-    - "2.7"
-    - "3.3"
-    - "3.4"
-    - "3.5"
-    - "3.6"
-    - "pypy"
-    - "pypy3"
+  - "2.6"
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "pypy"
+  - "pypy3"
 install: "pip install -r requirements.txt"
 script:
-    - python setup.py install
-    - py.test
+  - python setup.py install
+  - py.test
+deploy:
+  provider: pypi
+  user: EeOneDown
+  on:
+    tags: true
