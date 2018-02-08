@@ -5,7 +5,7 @@ from datetime import date
 
 from requests import get
 
-from spbu.apiexception import ApiException
+from spbu.types import ApiException
 from spbu.consts import main_url
 
 

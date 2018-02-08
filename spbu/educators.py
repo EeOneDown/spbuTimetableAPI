@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from requests import get
 
-from spbu.apiexception import ApiException
+from spbu.types import ApiException
 from spbu.consts import main_url
 
 

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from datetime import date, timedelta
+from datetime import date
 
 from requests import get
 
-from spbu.apiexception import ApiException
 from spbu.consts import main_url, available_lessons_types
+from spbu.types import ApiException
 
 
 def get_group_events(group_id, from_date=None, to_date=None,
@@ -20,7 +20,8 @@ def get_group_events(group_id, from_date=None, to_date=None,
     :type group_id: int
     :param from_date: (Optional) The datetime the events start from.
     :type from_date: date
-    :param to_date: (Optional) The datetime the events ends.
+    :param to_date: (Optional) The datetime the events ends. Use only with
+                    `from_date`.
     :type to_date: date
     :param lessons_type: (Optional) The type of lessons type.
     :type lessons_type: str
@@ -28,17 +29,16 @@ def get_group_events(group_id, from_date=None, to_date=None,
     :rtype: dict
     :raises ApiException: if `response status code` is not 200.
     """
-    sub_url = "groups/{0}/events/{1}/{2}"
+    sub_url = "groups/{0}/events"
     params = {}
 
     if lessons_type in available_lessons_types:
         params["timetable"] = lessons_type
 
-    if from_date is None:
-        from_date = date.today()
-        to_date = from_date + timedelta(days=7)
-    elif to_date is None:
-        to_date = from_date + timedelta(days=7)
+    if from_date and to_date:
+        sub_url += "/{0}/{1}".format(from_date, to_date)
+    elif from_date:
+        sub_url += "/{0}".format(from_date)
 
     result = get(url=main_url + sub_url.format(group_id, from_date, to_date),
                  params=params)
