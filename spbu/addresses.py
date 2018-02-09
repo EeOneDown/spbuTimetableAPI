@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 from requests import get
 
-from spbu.types import ApiException
 from spbu.consts import main_url, available_seating_types
+from spbu.types import ApiException
 
 
 def _create_params(seating=None, capacity=None, equipment=None):

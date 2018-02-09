@@ -5,8 +5,8 @@ from datetime import datetime
 
 from requests import get
 
-from spbu.types import ApiException
 from spbu.consts import main_url
+from spbu.types import ApiException
 
 
 def _create_string_from_datetime(dt):

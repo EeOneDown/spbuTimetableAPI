@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 from requests import get
 
-from spbu.types import ApiException
 from spbu.consts import main_url
+from spbu.types import ApiException
 
 
 def get_groups(program_id):

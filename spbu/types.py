@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 import json
-
 from datetime import datetime, date
+
 import six
 from requests import models
 
@@ -479,6 +479,24 @@ class EducatorId(_JsonDeserializable):
         """
         self.item1 = item1
         self.item2 = item2
+
+
+class ExtracurDivision(_JsonDeserializable):
+    @classmethod
+    def de_json(cls, json_type):
+        obj = cls.check_json(json_type)
+        alias = obj["Alias"]
+        name = obj["Name"]
+        return cls(alias, name)
+
+    def __init__(self, alias, name):
+        """
+
+        :type alias: str
+        :type name: str
+        """
+        self.alias = alias
+        self.name = name
 
 
 class ApiException(Exception):

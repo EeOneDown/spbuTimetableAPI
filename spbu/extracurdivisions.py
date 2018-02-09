@@ -5,8 +5,8 @@ from datetime import date
 
 from requests import get
 
-from spbu.types import ApiException
 from spbu.consts import main_url
+from spbu.types import ApiException
 
 
 def get_extracur_divisions():
