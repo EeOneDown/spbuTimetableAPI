@@ -10,7 +10,7 @@ from spbu.types import ApiException
 
 
 def get_group_events(group_id, from_date=None, to_date=None,
-                     lessons_type="Unknown"):
+                     lessons_type="Unknown", timeout=5):
     """
     Gets a given student group's events for the current week or
     Gets a given student group's events for a week starting from a specified
@@ -25,9 +25,12 @@ def get_group_events(group_id, from_date=None, to_date=None,
     :type to_date: date
     :param lessons_type: (Optional) The type of lessons type.
     :type lessons_type: str
+    :param timeout: (Optional) request timeout in seconds
+    :type timeout: int
     :return: The result parsed to a JSON dictionary.
     :rtype: dict
-    :raises ApiException: if `response status code` is not 200.
+    :raises spbu.ApiException: if `response status code` is not 200.
+    :raises requests.exceptions.ReadTimeout: if the request exceeds the timeout.
     """
     sub_url = "groups/{0}/events"
     params = {}
@@ -41,7 +44,8 @@ def get_group_events(group_id, from_date=None, to_date=None,
         sub_url += "/{0}".format(from_date)
 
     result = get(url=main_url + sub_url.format(group_id, from_date, to_date),
-                 params=params)
+                 params=params,
+                 timeout=timeout)
 
     if result.status_code != 200:
         msg = 'The server returned HTTP {0} {1}. Response body:\n[{2}]' \

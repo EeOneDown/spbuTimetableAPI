@@ -33,7 +33,7 @@ def _create_params(seating=None, capacity=None, equipment=None):
     return params
 
 
-def get_addresses(seating=None, capacity=None, equipment=None):
+def get_addresses(seating=None, capacity=None, equipment=None, timeout=5):
     """
     Gets addresses filtered by a given optional criteria.
     :param: seating: (Optional) Seating type: theater, amphitheater, roundtable.
@@ -43,15 +43,19 @@ def get_addresses(seating=None, capacity=None, equipment=None):
     :type capacity: int
     :param: equipment: (Optional) Equipment: comma-separated values list.
     :type equipment: str
+    :param timeout: (Optional) request timeout in seconds
+    :type timeout: int
     :return: The result parsed to a JSON dictionary.
     :rtype: list
-    :raises: ApiException: if `response status code` is not 200.
+    :raises spbu.ApiException: if `response status code` is not 200.
+    :raises requests.exceptions.ReadTimeout: if the request exceeds the timeout.
     """
     sub_url = "addresses"
     params = _create_params(seating, capacity, equipment)
 
     result = get(url=main_url + sub_url,
-                 params=params)
+                 params=params,
+                 timeout=timeout)
 
     if result.status_code != 200:
         msg = 'The server returned HTTP {0} {1}. Response body:\n[{2}]' \
@@ -61,7 +65,8 @@ def get_addresses(seating=None, capacity=None, equipment=None):
     return result.json()
 
 
-def get_classrooms(oid, seating=None, capacity=None, equipment=None):
+def get_classrooms(oid, seating=None, capacity=None, equipment=None,
+                   timeout=5):
     """
     Gets classrooms by a given optional criteria.
     :param oid: The address id: GUID.
@@ -73,6 +78,8 @@ def get_classrooms(oid, seating=None, capacity=None, equipment=None):
     :type capacity: int
     :param equipment: (Optional) Equipment: comma-separated values list.
     :type equipment: str
+    :param timeout: (Optional) request timeout in seconds
+    :type timeout: int
     :return: The result parsed to a JSON dictionary.
     :rtype: list
     :raises ApiException: if `response status code` is not 200.
@@ -81,7 +88,8 @@ def get_classrooms(oid, seating=None, capacity=None, equipment=None):
     params = _create_params(seating, capacity, equipment)
 
     result = get(url=main_url + sub_url.format(oid),
-                 params=params)
+                 params=params,
+                 timeout=timeout)
 
     if result.status_code != 200:
         msg = 'The server returned HTTP {0} {1}. Response body:\n[{2}]' \

@@ -107,6 +107,10 @@ class TestSpbu(unittest.TestCase):
             assert spbu.search_educator("Смирнов А. В.")
 
         @unittest.expectedFailure
+        def test_search_educator_timeout_fail(self):
+            assert spbu.search_educator("_")
+
+        @unittest.expectedFailure
         def test_extracur_events_fail(self):
             assert spbu.get_extracur_events("TEST")
 
