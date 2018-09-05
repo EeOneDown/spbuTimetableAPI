@@ -1,9 +1,9 @@
 from setuptools import setup
-from io import open
+import io
 
 
 def readme():
-    with open('README.md', encoding='utf-8') as f:
+    with io.open('README.md', encoding='utf-8') as f:
         return f.read()
 
 
