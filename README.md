@@ -3,6 +3,7 @@ Python implementation for the [SPbU TimeTable API](https://timetable.spbu.ru/hel
 
 [![Download Month](https://img.shields.io/pypi/v/spbuTimetableAPI.svg)](https://pypi.python.org/pypi/spbuTimetableAPI)
 [![Build Status](https://travis-ci.org/EeOneDown/spbuTimetableAPI.svg?branch=master)](https://travis-ci.org/EeOneDown/spbuTimetableAPI)
+[![CodeFactor](https://www.codefactor.io/repository/github/eeonedown/spbutimetableapi/badge/master)](https://www.codefactor.io/repository/github/eeonedown/spbutimetableapi/overview/master)
 
 * [Getting started.](#getting-started)
 
