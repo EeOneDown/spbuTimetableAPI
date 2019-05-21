@@ -1,16 +1,20 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+from __future__ import annotations
 
+import abc
 import json
-from datetime import datetime, date
+from dataclasses import dataclass, field
+from datetime import datetime, date, time
+from typing import TypeVar, Optional, List
 
-import six
 from requests import models
 
 from spbu.consts import error_msg
 
 
-class _JsonDeserializable:
+JSON_TYPE = TypeVar('JSON_TYPE', dict, str)
+
+
+class _JsonDeserializable(abc.ABC):
     """
     Subclasses of this class are guaranteed to be able to be created from a
     json-style dict or json formatted string.
@@ -18,18 +22,12 @@ class _JsonDeserializable:
     """
 
     @classmethod
-    def de_json(cls, json_type):
-        """
-        Returns an instance of this class from the given json dict or string.
-
-        This function must be overridden by subclasses.
-        :return: an instance of this class created from the given json dict or
-                 string.
-        """
-        raise NotImplementedError
+    @abc.abstractmethod
+    def de_json(cls, json_type: JSON_TYPE) -> _JsonDeserializable:
+        ...
 
     @staticmethod
-    def check_json(json_type):
+    def check_json(json_type: JSON_TYPE) -> dict:
         """
         Checks whether json_type is a dict or a string. If it is already a dict,
         it is returned as-is.
@@ -39,464 +37,1081 @@ class _JsonDeserializable:
         :type json_type: dict or str
         :return:
         """
-        try:
-            str_types = (str, unicode)
-        except NameError:
-            str_types = (str,)
-
         if isinstance(json_type, dict):
             return json_type
-        elif isinstance(json_type, str_types):
+        elif isinstance(json_type, str):
             return json.loads(json_type)
         else:
             raise ValueError("json_type should be a json dict or string.")
 
-    def __str__(self):
-        d = {}
-        for x, y in six.iteritems(self.__dict__):
-            if hasattr(y, '__dict__'):
-                d[x] = y.__dict__
-            else:
-                d[x] = y
 
-        return six.text_type(d)
+@dataclass
+class SDStudyDivision(_JsonDeserializable):
+    oid: Optional[str]
+    alias: Optional[str]
+    name: Optional[str]
 
-
-class StudyDivision(_JsonDeserializable):
     @classmethod
-    def de_json(cls, json_string):
+    def de_json(cls, json_string: JSON_TYPE) -> SDStudyDivision:
         obj = cls.check_json(json_string)
-        oid = obj['Oid']
-        alias = obj['Alias']
-        name = obj['Name']
-        return cls(oid, alias, name)
-
-    def __init__(self, oid, alias, name):
-        """
-
-        :type oid: str
-        :type alias: str
-        :type name: str
-        """
-        self.oid = oid
-        self.alias = alias
-        self.name = name
+        return cls(
+            oid=obj.get('Oid'),
+            alias=obj.get('Alias'),
+            name=obj.get('Name')
+        )
 
 
-class StudyProgramLevel(_JsonDeserializable):
+@dataclass
+class SDPLAdmissionYear(_JsonDeserializable):
+    study_program_id: Optional[int]
+    year_name: Optional[str]
+    year_number: Optional[int]
+    public_division_alias: Optional[str]
+    is_empty: bool = True
+
     @classmethod
-    def de_json(cls, json_string):
+    def de_json(cls, json_string: JSON_TYPE) -> SDPLAdmissionYear:
         obj = cls.check_json(json_string)
-        study_level_name = obj['StudyLevelName']
-        study_level_name_english = obj['StudyLevelNameEnglish']
-        has_course6 = obj['HasCourse6']
-        study_program_combinations = []
-        for sub_obj in obj['StudyProgramCombinations']:
-            study_program_combinations.append(
-                StudyProgramCombination.de_json(sub_obj)
-            )
-        return cls(study_level_name, study_level_name_english, has_course6,
-                   study_program_combinations)
-
-    def __init__(self, study_level_name, study_level_name_english, has_course6,
-                 study_program_combinations):
-        """
-
-        :type study_level_name: str
-        :type study_level_name_english: str
-        :type has_course6: bool
-        :type study_program_combinations: list of StudyProgramCombination
-        """
-        self.study_level_name = study_level_name
-        self.study_level_name_english = study_level_name_english
-        self.has_course6 = has_course6
-        self.study_program_combinations = study_program_combinations
+        return cls(
+            study_program_id=obj.get('StudyProgramId'),
+            year_name=obj.get('YearName'),
+            year_number=obj.get('YearNumber'),
+            public_division_alias=obj.get('PublicDivisionAlias'),
+            is_empty=obj.get('IsEmpty', True),
+        )
 
 
-class StudyProgramCombination(_JsonDeserializable):
+@dataclass
+class SDPLProgramCombination(_JsonDeserializable):
+    name: Optional[str]
+    name_english: Optional[str]
+    admission_years: List[SDPLAdmissionYear] = field(default_factory=list)
+
     @classmethod
-    def de_json(cls, json_string):
+    def de_json(cls, json_string: JSON_TYPE) -> SDPLProgramCombination:
         obj = cls.check_json(json_string)
-        name = obj['Name']
-        name_english = obj['NameEnglish']
-        admission_years = []
-        for sub_obj in obj['AdmissionYears']:
-            admission_years.append(
-                AdmissionYear.de_json(sub_obj)
-            )
-        return cls(name, name_english, admission_years)
-
-    def __init__(self, name, name_english, admission_years):
-        """
-
-        :type name: str
-        :type name_english: str
-        :type admission_years: list of AdmissionYear
-        """
-        self.name = name
-        self.name_english = name_english
-        self.admission_years = admission_years
+        return cls(
+            name=obj.get('Name'),
+            name_english=obj.get('NameEnglish'),
+            admission_years=[
+                SDPLAdmissionYear.de_json(sub_obj)
+                for sub_obj in obj.get('AdmissionYears', [])
+            ]
+        )
 
 
-class AdmissionYear(_JsonDeserializable):
+@dataclass
+class SDPLStudyLevel(_JsonDeserializable):
+    study_level_name: Optional[str]
+    study_level_name_english: Optional[str]
+    has_course6: bool = False
+    study_program_combinations: List[SDPLProgramCombination] = field(
+        default_factory=list
+    )
+
     @classmethod
-    def de_json(cls, json_string):
+    def de_json(cls, json_string: JSON_TYPE) -> SDPLStudyLevel:
         obj = cls.check_json(json_string)
-        study_program_id = obj['StudyProgramId']
-        year_name = obj['YearName']
-        year_number = obj['YearNumber']
-        is_empty = obj['IsEmpty']
-        public_division_alias = obj['PublicDivisionAlias']
-        return cls(study_program_id, year_name, year_number, is_empty,
-                   public_division_alias)
-
-    def __init__(self, study_program_id, year_name, year_number, is_empty,
-                 public_division_alias):
-        """
-
-        :type study_program_id: int
-        :type year_name: str
-        :type year_number: int
-        :type is_empty: bool
-        :type public_division_alias: str
-        """
-        self.study_program_id = study_program_id
-        self.year_name = year_name
-        self.year_number = year_number
-        self.is_empty = is_empty
-        self.public_division_alias = public_division_alias
+        return cls(
+            study_level_name=obj.get('StudyLevelName'),
+            study_level_name_english=obj.get('StudyLevelNameEnglish'),
+            has_course6=obj.get('HasCourse6', False),
+            study_program_combinations=[
+                SDPLProgramCombination.de_json(sub_obj)
+                for sub_obj in obj.get('StudyProgramCombinations', [])
+            ]
+        )
 
 
-class Group(_JsonDeserializable):
+@dataclass
+class PGGroup(_JsonDeserializable):
+    student_group_id: Optional[int]
+    student_group_name: Optional[str]
+    student_group_study_form: Optional[str]
+    student_group_profiles: Optional[str]
+    public_division_alias: Optional[str]
+
     @classmethod
-    def de_json(cls, json_string):
+    def de_json(cls, json_string: JSON_TYPE) -> PGGroup:
         obj = cls.check_json(json_string)
-        student_group_id = obj['StudentGroupId']
-        student_group_name = obj['StudentGroupName']
-        student_group_study_form = obj['StudentGroupStudyForm']
-        student_group_profiles = obj['StudentGroupProfiles']
-        public_division_alias = obj.get('PublicDivisionAlias')
-        return cls(student_group_id, student_group_name,
-                   student_group_study_form, student_group_profiles,
-                   public_division_alias)
-
-    def __init__(self, student_group_id, student_group_name,
-                 student_group_study_form, student_group_profiles,
-                 public_division_alias):
-        """
-
-        :type student_group_id: int
-        :type student_group_name: str
-        :type student_group_study_form: str
-        :type student_group_profiles: str
-        :type public_division_alias: str
-        """
-        self.student_group_id = student_group_id
-        self.student_group_name = student_group_name
-        self.student_group_study_form = student_group_study_form
-        self.student_group_profiles = student_group_profiles
-        self.public_division_alias = public_division_alias
+        return cls(
+            student_group_id=obj.get('StudentGroupId'),
+            student_group_name=obj.get('StudentGroupName'),
+            student_group_study_form=obj.get('StudentGroupStudyForm'),
+            student_group_profiles=obj.get('StudentGroupProfiles'),
+            public_division_alias=obj.get('PublicDivisionAlias')
+        )
 
 
-class Events(_JsonDeserializable):
-    @classmethod
-    def de_json(cls, json_type):
-        obj = cls.check_json(json_type)
-        student_group_id = obj["StudentGroupId"]
-        student_group_display_name = obj["StudentGroupDisplayName"]
-        timetable_display_name = obj["TimeTableDisplayName"]
-        previous_week_monday = None
-        if obj["PreviousWeekMonday"]:
-            previous_week_monday = datetime.strptime(
-                obj["PreviousWeekMonday"], "%Y-%m-%d"
-            ).date()
-        next_week_monday = None
-        if obj["NextWeekMonday"]:
-            next_week_monday = datetime.strptime(
-                obj["NextWeekMonday"], "%Y-%m-%d"
-            ).date()
-        is_previous_week_reference_available = obj[
-            "IsPreviousWeekReferenceAvailable"
-        ]
-        is_next_week_reference_available = obj["IsNextWeekReferenceAvailable"]
-        is_current_week_reference_available = obj[
-            "IsCurrentWeekReferenceAvailable"
-        ]
-        week_display_text = obj["WeekDisplayText"]
-        week_monday = None
-        if obj["WeekMonday"]:
-            week_monday = datetime.strptime(
-                obj["WeekMonday"], "%Y-%m-%d"
-            ).date()
-        days = []
-        for sub_obj in obj["Days"]:
-            days.append(Day.de_json(sub_obj))
-        return cls(student_group_id, student_group_display_name,
-                   timetable_display_name, previous_week_monday,
-                   next_week_monday, is_previous_week_reference_available,
-                   is_next_week_reference_available,
-                   is_current_week_reference_available, week_display_text,
-                   week_monday, days)
-
-    def __init__(self, student_group_id, student_group_display_name,
-                 timetable_display_name, previous_week_monday,
-                 next_week_monday, is_previous_week_reference_available,
-                 is_next_week_reference_available,
-                 is_current_week_reference_available, week_display_text,
-                 week_monday, days):
-        """
-
-        :type student_group_id: int
-        :type student_group_display_name: str
-        :type timetable_display_name: str
-        :type previous_week_monday: date | None
-        :type next_week_monday: date | None
-        :type is_previous_week_reference_available: bool
-        :type is_next_week_reference_available: bool
-        :type is_current_week_reference_available: bool
-        :type week_display_text: str
-        :type week_monday: date | None
-        :type days: list of Day
-        """
-        self.student_group_id = student_group_id
-        self.student_group_display_name = student_group_display_name
-        self.timetable_display_name = timetable_display_name
-        self.previous_week_monday = previous_week_monday
-        self.next_week_monday = next_week_monday
-        self.is_previous_week_reference_available = \
-            is_previous_week_reference_available
-        self.is_next_week_reference_available = is_next_week_reference_available
-        self.is_current_week_reference_available = \
-            is_current_week_reference_available
-        self.week_display_text = week_display_text
-        self.week_monday = week_monday
-        self.days = days
-
-
-class Day(_JsonDeserializable):
-    @classmethod
-    def de_json(cls, json_type):
-        obj = cls.check_json(json_type)
-        day = datetime.strptime(obj["Day"], "%Y-%m-%dT%H:%M:%S")
-        day_string = obj["DayString"]
-        day_study_events = []
-        for sub_obj in obj["DayStudyEvents"]:
-            day_study_events.append(DayStudyEvent.de_json(sub_obj))
-        return cls(day, day_string, day_study_events)
-
-    def __init__(self, day, day_string, day_study_events):
-        """
-
-        :type day: datetime
-        :type day_string: str
-        :type day_study_events: list of DayStudyEvent
-        """
-        self.day = day
-        self.day_string = day_string
-        self.day_study_events = day_study_events
-
-
-class DayStudyEvent(_JsonDeserializable):
-    @classmethod
-    def de_json(cls, json_type):
-        obj = cls.check_json(json_type)
-        study_events_timetable_kind_code = obj["StudyEventsTimeTableKindCode"]
-        start = datetime.strptime(obj["Start"], "%Y-%m-%dT%H:%M:%S")
-        end = datetime.strptime(obj["End"], "%Y-%m-%dT%H:%M:%S")
-        subject = obj["Subject"]
-        time_interval_string = obj["TimeIntervalString"]
-        date_with_time_interval_string = obj["DateWithTimeIntervalString"]
-        display_date_and_time_interval_string = obj[
-            "DisplayDateAndTimeIntervalString"
-        ]
-        locations_display_text = obj["LocationsDisplayText"]
-        educators_display_text = obj["EducatorsDisplayText"]
-        has_educators = obj["HasEducators"]
-        is_cancelled = obj["IsCancelled"]
-        contingent_unit_name = obj["ContingentUnitName"]
-        division_and_course = obj["DivisionAndCourse"]
-        is_assigned = obj["IsAssigned"]
-        time_was_changed = obj["TimeWasChanged"]
-        locations_were_changed = obj["LocationsWereChanged"]
-        educators_were_reassigned = obj["EducatorsWereReassigned"]
-        elective_disciplines_count = obj["ElectiveDisciplinesCount"]
-        is_elective = obj["IsElective"]
-        has_the_same_time_as_previous_item = obj["HasTheSameTimeAsPreviousItem"]
-        contingent_units_display_test = obj["ContingentUnitsDisplayTest"]
-        is_study = obj["IsStudy"]
-        all_day = obj["AllDay"]
-        within_the_same_day = obj["WithinTheSameDay"]
-        event_locations = []
-        for sub_obj in obj["EventLocations"]:
-            event_locations.append(EventLocation.de_json(sub_obj))
-        educator_ids = []
-        for sub_obj in obj["EducatorIds"]:
-            educator_ids.append(EducatorId.de_json(sub_obj))
-        return cls(study_events_timetable_kind_code, start, end, subject,
-                   time_interval_string, date_with_time_interval_string,
-                   display_date_and_time_interval_string,
-                   locations_display_text, educators_display_text,
-                   has_educators, is_cancelled, contingent_unit_name,
-                   division_and_course, is_assigned, time_was_changed,
-                   locations_were_changed, educators_were_reassigned,
-                   elective_disciplines_count, is_elective,
-                   has_the_same_time_as_previous_item,
-                   contingent_units_display_test, is_study, all_day,
-                   within_the_same_day, event_locations, educator_ids)
-
-    def __init__(self, study_events_timetable_kind_code, start, end, subject,
-                 time_interval_string, date_with_time_interval_string,
-                 display_date_and_time_interval_string, locations_display_text,
-                 educators_display_text, has_educators, is_cancelled,
-                 contingent_unit_name, division_and_course, is_assigned,
-                 time_was_changed, locations_were_changed,
-                 educators_were_reassigned, elective_disciplines_count,
-                 is_elective, has_the_same_time_as_previous_item,
-                 contingent_units_display_test, is_study, all_day,
-                 within_the_same_day, event_locations, educator_ids):
-        """
-
-        :type study_events_timetable_kind_code: int
-        :type start: datetime
-        :type end: datetime
-        :type subject: str
-        :type time_interval_string: str
-        :type date_with_time_interval_string: str
-        :type display_date_and_time_interval_string: str
-        :type locations_display_text: str
-        :type educators_display_text: str
-        :type has_educators: bool
-        :type is_cancelled: bool
-        :type contingent_unit_name: str
-        :type division_and_course: str
-        :type is_assigned: bool
-        :type time_was_changed: bool
-        :type locations_were_changed: bool
-        :type educators_were_reassigned: bool
-        :type elective_disciplines_count: int
-        :type is_elective: bool
-        :type has_the_same_time_as_previous_item: bool
-        :type contingent_units_display_test:
-        :type is_study: bool
-        :type all_day: bool
-        :type within_the_same_day: bool
-        :type event_locations: list of EventLocations
-        :type educator_ids: list of EducatorId
-        """
-        self.study_events_timetable_kind_code = study_events_timetable_kind_code
-        self.start = start
-        self.end = end
-        self.subject = subject
-        self.time_interval_string = time_interval_string
-        self.date_with_time_interval_string = date_with_time_interval_string
-        self.display_date_and_time_interval_string = \
-            display_date_and_time_interval_string
-        self.locations_display_text = locations_display_text
-        self.educators_display_text = educators_display_text
-        self.has_educators = has_educators
-        self.is_cancelled = is_cancelled
-        self.contingent_unit_name = contingent_unit_name
-        self.division_and_course = division_and_course
-        self.is_assigned = is_assigned
-        self.time_was_changed = time_was_changed
-        self.locations_were_changed = locations_were_changed
-        self.educators_were_reassigned = educators_were_reassigned
-        self.elective_disciplines_count = elective_disciplines_count
-        self.is_elective = is_elective
-        self.has_the_same_time_as_previous_item = \
-            has_the_same_time_as_previous_item
-        self.contingent_units_display_test = contingent_units_display_test
-        self.is_study = is_study
-        self.all_day = all_day
-        self.within_the_same_day = within_the_same_day
-        self.event_locations = event_locations
-        self.educator_ids = educator_ids
-
-
-class EventLocation(_JsonDeserializable):
-    @classmethod
-    def de_json(cls, json_type):
-        obj = cls.check_json(json_type)
-        is_empty = obj["IsEmpty"]
-        display_name = obj["DisplayName"]
-        has_geographic_coordinates = obj["HasGeographicCoordinates"]
-        latitude = obj["Latitude"]
-        longitude = obj["Longitude"]
-        latitude_value = obj["LatitudeValue"]
-        longitude_value = obj["LongitudeValue"]
-        educators_display_text = obj["EducatorsDisplayText"]
-        has_educators = obj["HasEducators"]
-        educator_ids = []
-        for sub_obj in obj["EducatorIds"]:
-            educator_ids.append(EducatorId.de_json(sub_obj))
-        return cls(is_empty, display_name, has_geographic_coordinates, latitude,
-                   longitude, latitude_value, longitude_value,
-                   educators_display_text, has_educators, educator_ids)
-
-    def __init__(self, is_empty, display_name, has_geographic_coordinates,
-                 latitude, longitude, latitude_value, longitude_value,
-                 educators_display_text, has_educators, educator_ids):
-        """
-
-        :type is_empty: bool
-        :type display_name: str
-        :type has_geographic_coordinates: bool
-        :type latitude: float
-        :type longitude: float
-        :type latitude_value: str
-        :type longitude_value: str
-        :type educators_display_text: str
-        :type has_educators: bool
-        :type educator_ids: list of EducatorId
-        """
-        self.is_empty = is_empty
-        self.display_name = display_name
-        self.has_geographic_coordinates = has_geographic_coordinates
-        self.latitude = latitude
-        self.longitude = longitude
-        self.latitude_value = latitude_value
-        self.longitude_value = longitude_value
-        self.educators_display_text = educators_display_text
-        self.has_educators = has_educators
-        self.educator_ids = educator_ids
-
-
+@dataclass
 class EducatorId(_JsonDeserializable):
+    eid: Optional[int]
+    name: Optional[str]
+
     @classmethod
-    def de_json(cls, json_type):
+    def de_json(cls, json_type: JSON_TYPE) -> EducatorId:
         obj = cls.check_json(json_type)
-        item1 = obj["Item1"]
-        item2 = obj["Item2"]
-        return cls(item1, item2)
-
-    def __init__(self, item1, item2):
-        """
-        This class has the same property names as in the documentation
-        :param item1: id.
-        :type item1: int
-        :param item2: name.
-        :type item2: str
-        """
-        self.item1 = item1
-        self.item2 = item2
+        return cls(
+            eid=obj.get('Item1'),
+            name=obj.get('Item2')
+        )
 
 
+@dataclass
+class EventLocation(_JsonDeserializable):
+    display_name: Optional[str]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    latitude_value: Optional[str]
+    longitude_value: Optional[str]
+    educators_display_text: Optional[str]
+    is_empty: bool = True
+    has_geographic_coordinates: bool = False
+    has_educators: bool = False
+    educator_ids: List[EducatorId] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EventLocation:
+        obj = cls.check_json(json_type)
+        return cls(
+            is_empty=obj.get("IsEmpty", True),
+            display_name=obj.get("DisplayName"),
+            has_geographic_coordinates=obj.get(
+                "HasGeographicCoordinates", False
+            ),
+            latitude=obj.get("Latitude"),
+            longitude=obj.get("Longitude"),
+            latitude_value=obj.get("LatitudeValue"),
+            longitude_value=obj.get("LongitudeValue"),
+            educators_display_text=obj.get("EducatorsDisplayText"),
+            has_educators=obj.get("HasEducators", False),
+            educator_ids=[
+                EducatorId.de_json(sub_obj)
+                for sub_obj in obj.get("EducatorIds", [])
+            ]
+        )
+
+
+@dataclass
+class GEEvent(_JsonDeserializable):
+    study_events_timetable_kind_code: Optional[int]
+    start: Optional[datetime]
+    end: Optional[datetime]
+    subject: Optional[str]
+    time_interval_string: Optional[str]
+    date_with_time_interval_string: Optional[str]
+    display_date_and_time_interval_string: Optional[str]
+    locations_display_text: Optional[str]
+    educators_display_text: Optional[str]
+    contingent_unit_name: Optional[str]
+    division_and_course: Optional[str]
+    elective_disciplines_count: Optional[int]
+    contingent_units_display_test: Optional[str]
+    has_educators: bool = False
+    is_cancelled: bool = False
+    is_assigned: bool = False
+    time_was_changed: bool = False
+    locations_were_changed: bool = False
+    educators_were_reassigned: bool = False
+    is_elective: bool = False
+    has_the_same_time_as_previous_item: bool = False
+    is_study: bool = False
+    all_day: bool = False
+    within_the_same_day: bool = False
+    event_locations: List[EventLocation] = field(default_factory=list)
+    educator_ids: List[EducatorId] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> GEEvent:
+        obj = cls.check_json(json_type)
+        start = obj.get("Start")
+        if start:
+            start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+        end = obj.get("End")
+        if end:
+            end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+        return cls(
+            study_events_timetable_kind_code=obj.get(
+                "StudyEventsTimeTableKindCode"
+            ),
+            start=start,
+            end=end,
+            subject=obj.get("Subject"),
+            time_interval_string=obj.get("TimeIntervalString"),
+            date_with_time_interval_string=obj.get(
+                "DateWithTimeIntervalString"
+            ),
+            display_date_and_time_interval_string=obj.get(
+                "DisplayDateAndTimeIntervalString"
+            ),
+            locations_display_text=obj.get("LocationsDisplayText"),
+            educators_display_text=obj.get("EducatorsDisplayText"),
+            has_educators=obj.get("HasEducators", False),
+            is_cancelled=obj.get("IsCancelled", False),
+            contingent_unit_name=obj.get("ContingentUnitName"),
+            division_and_course=obj.get("DivisionAndCourse"),
+            is_assigned=obj.get("IsAssigned", False),
+            time_was_changed=obj.get("TimeWasChanged", False),
+            locations_were_changed=obj.get("LocationsWereChanged", False),
+            educators_were_reassigned=obj.get("EducatorsWereReassigned", False),
+            elective_disciplines_count=obj.get("ElectiveDisciplinesCount"),
+            is_elective=obj.get("IsElective", False),
+            has_the_same_time_as_previous_item=obj.get(
+                "HasTheSameTimeAsPreviousItem", False
+            ),
+            contingent_units_display_test=obj.get("ContingentUnitsDisplayTest"),
+            is_study=obj.get("IsStudy", False),
+            all_day=obj.get("AllDay", False),
+            within_the_same_day=obj.get("WithinTheSameDay", False),
+            event_locations=[
+                EventLocation.de_json(sub_obj)
+                for sub_obj in obj.get("EventLocations", [])
+            ],
+            educator_ids=[
+                EducatorId.de_json(sub_obj)
+                for sub_obj in obj.get("EducatorIds", [])
+            ]
+        )
+
+
+@dataclass
+class GEEventsDay(_JsonDeserializable):
+    day: Optional[date]
+    day_string: Optional[str]
+    day_study_events: List[GEEvent] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> GEEventsDay:
+        obj = cls.check_json(json_type)
+        day = obj.get("Day")
+        if day:
+            day = datetime.strptime(day, "%Y-%m-%dT%H:%M:%S").date()
+        return cls(
+            day=day,
+            day_string=obj.get("DayString"),
+            day_study_events=[
+                GEEvent.de_json(sub_obj)
+                for sub_obj in obj.get("DayStudyEvents")
+            ]
+        )
+
+
+@dataclass
+class GroupEvents(_JsonDeserializable):
+    student_group_id: Optional[int]
+    student_group_display_name: Optional[str]
+    timetable_display_name: Optional[str]
+    previous_week_monday: Optional[date]
+    next_week_monday: Optional[date]
+    week_display_text: Optional[str]
+    week_monday: Optional[date]
+    is_previous_week_reference_available: bool = False
+    is_next_week_reference_available: bool = False
+    is_current_week_reference_available: bool = False
+    days: List[GEEventsDay] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> GroupEvents:
+        obj = cls.check_json(json_type)
+        previous_week_monday = obj.get("PreviousWeekMonday")
+        if previous_week_monday:
+            previous_week_monday = datetime.strptime(
+                previous_week_monday, "%Y-%m-%d"
+            ).date()
+        next_week_monday = obj.get("NextWeekMonday")
+        if next_week_monday:
+            next_week_monday = datetime.strptime(
+                next_week_monday, "%Y-%m-%d"
+            ).date()
+        week_monday = obj.get("WeekMonday")
+        if week_monday:
+            week_monday = datetime.strptime(
+                week_monday, "%Y-%m-%d"
+            ).date()
+        return cls(
+            student_group_id=obj.get("StudentGroupId"),
+            student_group_display_name=obj.get("StudentGroupDisplayName"),
+            timetable_display_name=obj.get("TimeTableDisplayName"),
+            is_previous_week_reference_available=obj.get(
+                "IsPreviousWeekReferenceAvailable"
+            ),
+            is_next_week_reference_available=obj.get(
+                "IsNextWeekReferenceAvailable"
+            ),
+            is_current_week_reference_available=obj.get(
+                "IsCurrentWeekReferenceAvailable"
+            ),
+            week_display_text=obj.get("WeekDisplayText"),
+            days=[GEEventsDay.de_json(_obj) for _obj in obj.get("Days", [])],
+            previous_week_monday=previous_week_monday,
+            next_week_monday=next_week_monday,
+            week_monday=week_monday
+        )
+
+
+@dataclass
 class ExtracurDivision(_JsonDeserializable):
+    alias: Optional[str]
+    name: Optional[str]
+
     @classmethod
-    def de_json(cls, json_type):
+    def de_json(cls, json_type: JSON_TYPE) -> ExtracurDivision:
         obj = cls.check_json(json_type)
-        alias = obj["Alias"]
-        name = obj["Name"]
-        return cls(alias, name)
+        return cls(
+            alias=obj.get("Alias"),
+            name=obj.get("Name")
+        )
 
-    def __init__(self, alias, name):
-        """
 
-        :type alias: str
-        :type name: str
-        """
-        self.alias = alias
-        self.name = name
+@dataclass
+class AddressLocation(_JsonDeserializable):
+    is_empty: Optional[bool]
+    display_name: Optional[str]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    latitude_value: Optional[str]
+    longitude_value: Optional[str]
+    has_geographic_coordinates: Optional[bool] = False
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> AddressLocation:
+        obj = cls.check_json(json_type)
+        return cls(
+            is_empty=obj.get("IsEmpty"),
+            display_name=obj.get("DisplayName"),
+            has_geographic_coordinates=obj.get(
+                "HasGeographicCoordinates", False
+            ),
+            latitude=obj.get("Latitude"),
+            longitude=obj.get("Longitude"),
+            latitude_value=obj.get("LatitudeValue"),
+            longitude_value=obj.get("LongitudeValue")
+        )
+
+
+@dataclass
+class ExEEventsDay(_JsonDeserializable):
+    day: Optional[date]
+    day_string: Optional[str]
+    day_events: List[ExtracurEvent] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> ExEEventsDay:
+        obj = cls.check_json(json_type)
+        day = obj.get("Day")
+        if day:
+            day = datetime.strptime(day, "%Y-%m-%dT%H:%M:%S").date()
+        return cls(
+            day=day,
+            day_string=obj.get("DayString"),
+            day_events=[
+                ExtracurEvent.de_json(_obj)
+                for _obj in obj.get("DayEvents", [])
+            ]
+        )
+
+
+@dataclass
+class ExtracurEvent(_JsonDeserializable):
+    id: Optional[int]
+    start: Optional[datetime]
+    end: Optional[datetime]
+    subject: Optional[str]
+    time_interval_string: Optional[str]
+    date_with_time_interval_string: Optional[str]
+    locations_display_text: Optional[str]
+    educators_display_text: Optional[str]
+    contingent_units_display_test: Optional[str]
+    display_date_and_time_interval_string: Optional[str]
+    view_kind: Optional[int]
+    division_alias: Optional[str]
+    recurrence_index: Optional[int]
+    full_date_with_time_interval_string: Optional[str]
+    year: Optional[int]
+    subkind_display_name: Optional[str]
+    order_index: Optional[int]
+    location: Optional[AddressLocation]
+    from_date: Optional[date]
+    from_date_string: Optional[str]
+    responsible_person_contacts: Optional[str]
+    has_educators: bool = False
+    is_cancelled: bool = False
+    has_the_same_time_as_previous_item: bool = False
+    all_day: bool = False
+    within_the_same_day: bool = False
+    show_year: bool = False
+    show_immediate: bool = False
+    is_show_immediate_hidden: bool = False
+    has_agenda: bool = False
+    is_recurrence: bool = False
+    is_empty: bool = True
+    is_phys: bool = False
+    is_study: bool = False
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> ExtracurEvent:
+        obj = cls.check_json(json_type)
+        start = obj.get("Start")
+        if start:
+            start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+        end = obj.get("End")
+        if end:
+            end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+        from_date = obj.get("FromDate")
+        if from_date:
+            from_date = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S").date()
+        location = obj.get("Location")
+        if location:
+            location = AddressLocation.de_json(location)
+        return cls(
+            id=obj.get("Id"),
+            start=start,
+            end=end,
+            subject=obj.get("Subject"),
+            time_interval_string=obj.get("TimeIntervalString"),
+            date_with_time_interval_string=obj.get(
+                "DateWithTimeIntervalString"
+            ),
+            locations_display_text=obj.get("LocationsDisplayText"),
+            educators_display_text=obj.get("EducatorsDisplayText"),
+            contingent_units_display_test=obj.get("ContingentUnitsDisplayTest"),
+            display_date_and_time_interval_string=obj.get(
+                "DisplayDateAndTimeIntervalString"
+            ),
+            view_kind=obj.get("ViewKind"),
+            division_alias=obj.get("DivisionAlias"),
+            recurrence_index=obj.get("RecurrenceIndex"),
+            full_date_with_time_interval_string=obj.get(
+                "FullDateWithTimeIntervalString"
+            ),
+            year=obj.get("Year"),
+            subkind_display_name=obj.get("SubkindDisplayName"),
+            order_index=obj.get("OrderIndex"),
+            location=location,
+            from_date=from_date,
+            from_date_string=obj.get("FromDateString"),
+            responsible_person_contacts=obj.get("ResponsiblePersonContacts"),
+            has_educators=obj.get("HasEducators", False),
+            is_cancelled=obj.get("IsCancelled", False),
+            has_the_same_time_as_previous_item=obj.get(
+                "HasTheSameTimeAsPreviousItem", False
+            ),
+            all_day=obj.get("AllDay", False),
+            within_the_same_day=obj.get("WithinTheSameDay", False),
+            show_year=obj.get("ShowYear", False),
+            show_immediate=obj.get("ShowImmediate", False),
+            is_show_immediate_hidden=obj.get("IsShowImmediateHidden", False),
+            has_agenda=obj.get("HasAgenda", False),
+            is_recurrence=obj.get("IsRecurrence", False),
+            is_empty=obj.get("IsEmpty", True),
+            is_phys=obj.get("IsPhys", False),
+            is_study=obj.get("IsStudy", False)
+        )
+
+
+@dataclass
+class ExEEventsByKind(_JsonDeserializable):
+    caption: Optional[str]
+    events: List[ExtracurEvent] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> ExEEventsByKind:
+        obj = cls.check_json(json_type)
+        return cls(
+            caption=obj.get("Caption"),
+            events=[
+                ExtracurEvent.de_json(_obj)
+                for _obj in obj.get("Events", [])
+            ]
+        )
+
+
+@dataclass
+class ExtracurEvents(_JsonDeserializable):
+    alias: Optional[str]
+    title: Optional[str]
+    chosen_month_display_text: Optional[str]
+    previous_month_display_text: Optional[str]
+    previous_month_date: Optional[date]
+    next_month_display_text: Optional[str]
+    next_month_date: Optional[date]
+    previous_week_monday: Optional[date]
+    next_week_monday: Optional[date]
+    week_display_text: Optional[str]
+    week_monday: Optional[date]
+    has_events_to_show: bool = False
+    is_current_month_reference_available: bool = False
+    show_grouping_captions: bool = False
+    is_previous_week_reference_available: bool = False
+    is_next_week_reference_available: bool = False
+    is_current_week_reference_available: bool = False
+    event_groupings: List[ExEEventsByKind] = field(default_factory=list)
+    earlier_events: List[ExtracurEvent] = field(default_factory=list)
+    days: List[ExEEventsDay] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> ExtracurEvents:
+        obj = cls.check_json(json_type)
+        previous_month_date = obj.get("PreviousMonthDate")
+        if previous_month_date:
+            previous_month_date = datetime.strptime(
+                previous_month_date, "%Y-%m-%d"
+            ).date()
+        next_month_date = obj.get("NextMonthDate")
+        if next_month_date:
+            next_month_date = datetime.strptime(
+                next_month_date, "%Y-%m-%d"
+            ).date()
+        previous_week_monday = obj.get("PreviousWeekMonday")
+        if previous_week_monday:
+            previous_week_monday = datetime.strptime(
+                previous_week_monday, "%Y-%m-%d"
+            ).date()
+        next_week_monday = obj.get("NextWeekMonday")
+        if next_week_monday:
+            next_week_monday = datetime.strptime(
+                next_week_monday, "%Y-%m-%d"
+            ).date()
+        week_monday = obj.get("WeekMonday")
+        if week_monday:
+            week_monday = datetime.strptime(
+                week_monday, "%Y-%m-%d"
+            ).date()
+        return cls(
+            alias=obj.get("Alias"),
+            title=obj.get("Title"),
+            chosen_month_display_text=obj.get("ChosenMonthDisplayText"),
+            previous_month_display_text=obj.get("PreviousMonthDisplayText"),
+            previous_month_date=previous_month_date,
+            next_month_display_text=obj.get("NextMonthDisplayText"),
+            next_month_date=next_month_date,
+            previous_week_monday=previous_week_monday,
+            next_week_monday=next_week_monday,
+            week_display_text=obj.get("WeekDisplayText"),
+            week_monday=week_monday,
+            has_events_to_show=obj.get("HasEventsToShow", False),
+            is_current_month_reference_available=obj.get(
+                "IsCurrentMonthReferenceAvailable", False
+            ),
+            show_grouping_captions=obj.get("ShowGroupingCaptions", False),
+            is_previous_week_reference_available=obj.get(
+                "IsPreviousWeekReferenceAvailable", False
+            ),
+            is_next_week_reference_available=obj.get(
+                "IsNextWeekReferenceAvailable", False
+            ),
+            is_current_week_reference_available=obj.get(
+                "IsCurrentWeekReferenceAvailable", False
+            ),
+            event_groupings=[
+                ExEEventsByKind.de_json(_obj)
+                for _obj in obj.get("EventGroupings", [])
+            ],
+            earlier_events=[
+                ExtracurEvent.de_json(_obj)
+                for _obj in obj.get("EarlierEvents", [])
+            ],
+            days=[
+                ExEEventsDay.de_json(_obj)
+                for _obj in obj.get("Days", [])
+            ]
+        )
+
+
+@dataclass
+class Educator(_JsonDeserializable):
+    id: Optional[int]
+    display_name: Optional[str]
+    full_name: Optional[str]
+    employments: List[EdEmployment] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> Educator:
+        obj = cls.check_json(json_type)
+        return cls(
+            id=obj.get("Id"),
+            display_name=obj.get("DisplayName"),
+            full_name=obj.get("FullName"),
+            employments=[
+                EdEmployment.de_json(_obj)
+                for _obj in obj.get("Employments", [])
+            ]
+        )
+
+
+@dataclass
+class EdEmployment(_JsonDeserializable):
+    position: Optional[str]
+    department: Optional[str]
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EdEmployment:
+        obj = cls.check_json(json_type)
+        return cls(
+            position=obj.get("Position"),
+            department=obj.get("Department")
+        )
+
+
+@dataclass
+class ContingentUnitName(_JsonDeserializable):
+    groups: Optional[str]
+    courses: Optional[str]
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> ContingentUnitName:
+        obj = cls.check_json(json_type)
+        return cls(
+            groups=obj.get("Item1"),
+            courses=obj.get("Item2")
+        )
+
+
+@dataclass
+class EdETEvent(_JsonDeserializable):
+    start: Optional[time]
+    end: Optional[time]
+    subject: Optional[str]
+    time_interval_string: Optional[str]
+    educators_display_text: Optional[str]
+    study_events_time_table_kind_code: Optional[int]
+    is_canceled: bool = False
+    dates: List[str] = field(default_factory=list)
+    educator_ids: List[EducatorId] = field(default_factory=list)
+    event_locations: List[EventLocation] = field(default_factory=list)
+    contingent_unit_names: List[ContingentUnitName] = field(
+        default_factory=list
+    )
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EdETEvent:
+        obj = cls.check_json(json_type)
+        start = obj.get("Start")
+        if start:
+            start = datetime.strptime(
+                start, "%H:%M:%S"
+            ).time()
+        end = obj.get("End")
+        if end:
+            end = datetime.strptime(
+                end, "%H:%M:%S"
+            ).time()
+        return cls(
+            start=start,
+            end=end,
+            subject=obj.get("Subject"),
+            time_interval_string=obj.get("TimeIntervalString"),
+            educators_display_text=obj.get("EducatorsDisplayText"),
+            study_events_time_table_kind_code=obj.get(
+                "StudyEventsTimeTableKindCode"
+            ),
+            is_canceled=obj.get("IsCanceled", False),
+            dates=obj.get("Dates", []),
+            educator_ids=[
+                EducatorId.de_json(_obj)
+                for _obj in obj.get("EducatorIds", [])
+            ],
+            event_locations=[
+                EventLocation.de_json(_obj)
+                for _obj in obj.get("EventLocations", [])
+            ],
+            contingent_unit_names=[
+                ContingentUnitName.de_json(_obj)
+                for _obj in obj.get("ContingentUnitNames", [])
+            ]
+        )
+
+
+@dataclass
+class EdETEventsDay(_JsonDeserializable):
+    day: Optional[int]
+    day_string: Optional[str]
+    day_study_events_count: Optional[int]
+    day_study_events: List[EdETEvent] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EdETEventsDay:
+        obj = cls.check_json(json_type)
+        return cls(
+            day=obj.get("Day"),
+            day_string=obj.get("DayString"),
+            day_study_events_count=obj.get("DayStudyEventsCount"),
+            day_study_events=[
+                EdETEvent.de_json(_obj)
+                for _obj in obj.get("DayStudyEvents", [])
+            ]
+        )
+
+
+@dataclass
+class EducatorEventsTerm(_JsonDeserializable):
+    title: Optional[str]
+    educator_display_text: Optional[str]
+    educator_long_display_text: Optional[str]
+    date_range_display_text: Optional[str]
+    educator_master_id: Optional[int]
+    from_date: Optional[date]
+    to_date: Optional[date]
+    next: Optional[int]
+    is_spring_term: bool = False
+    spring_term_link_available: bool = False
+    autumn_term_link_available: bool = False
+    has_events: bool = False
+    educator_events_days: List[EdETEventsDay] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EducatorEventsTerm:
+        obj = cls.check_json(json_type)
+        from_date = obj.get("From")
+        if from_date:
+            from_date = datetime.strptime(
+                from_date, "%Y-%m-%dT%H:%M:%S"
+            ).date()
+        to_date = obj.get("From")
+        if to_date:
+            to_date = datetime.strptime(
+                to_date, "%Y-%m-%dT%H:%M:%S"
+            ).date()
+        return cls(
+            title=obj.get("Title"),
+            educator_display_text=obj.get("EducatorDisplayText"),
+            educator_long_display_text=obj.get("EducatorLongDisplayText"),
+            date_range_display_text=obj.get("DateRangeDisplayText"),
+            educator_master_id=obj.get("EducatorMasterId"),
+            from_date=from_date,
+            to_date=to_date,
+            next=obj.get("Next"),
+            is_spring_term=obj.get("IsSpringTerm", False),
+            spring_term_link_available=obj.get(
+                "SpringTermLinkAvailable", False
+            ),
+            autumn_term_link_available=obj.get(
+                "AutumnTermLinkAvailable", False
+            ),
+            has_events=obj.get("HasEvents"),
+            educator_events_days=[
+                EdETEventsDay.de_json(_obj)
+                for _obj in obj.get("EducatorEventsDays", [])
+            ]
+        )
+
+
+@dataclass
+class EdEEvent(_JsonDeserializable):
+    study_events_timetable_kind_code: Optional[int]
+    start: Optional[datetime]
+    end: Optional[datetime]
+    subject: Optional[str]
+    time_interval_string: Optional[str]
+    date_with_time_interval_string: Optional[str]
+    display_date_and_time_interval_string: Optional[str]
+    locations_display_text: Optional[str]
+    educators_display_text: Optional[str]
+    contingent_unit_name: Optional[str]
+    division_and_course: Optional[str]
+    elective_disciplines_count: Optional[int]
+    has_educators: bool = False
+    is_cancelled: bool = False
+    is_assigned: bool = False
+    time_was_changed: bool = False
+    locations_were_changed: bool = False
+    educators_were_reassigned: bool = False
+    is_elective: bool = False
+    has_the_same_time_as_previous_item: bool = False
+    is_study: bool = False
+    all_day: bool = False
+    within_the_same_day: bool = False
+    event_locations: List[EventLocation] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EdEEvent:
+        obj = cls.check_json(json_type)
+        start = obj.get("Start")
+        if start:
+            start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+        end = obj.get("End")
+        if end:
+            end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+        return cls(
+            study_events_timetable_kind_code=obj.get(
+                "StudyEventsTimeTableKindCode"
+            ),
+            start=start,
+            end=end,
+            subject=obj.get("Subject"),
+            time_interval_string=obj.get("TimeIntervalString"),
+            date_with_time_interval_string=obj.get(
+                "DateWithTimeIntervalString"
+            ),
+            display_date_and_time_interval_string=obj.get(
+                "DisplayDateAndTimeIntervalString"
+            ),
+            locations_display_text=obj.get("LocationsDisplayText"),
+            educators_display_text=obj.get("EducatorsDisplayText"),
+            has_educators=obj.get("HasEducators", False),
+            is_cancelled=obj.get("IsCancelled", False),
+            contingent_unit_name=obj.get("ContingentUnitName"),
+            division_and_course=obj.get("DivisionAndCourse"),
+            is_assigned=obj.get("IsAssigned", False),
+            time_was_changed=obj.get("TimeWasChanged", False),
+            locations_were_changed=obj.get("LocationsWereChanged", False),
+            educators_were_reassigned=obj.get("EducatorsWereReassigned", False),
+            elective_disciplines_count=obj.get("ElectiveDisciplinesCount"),
+            is_elective=obj.get("IsElective", False),
+            has_the_same_time_as_previous_item=obj.get(
+                "HasTheSameTimeAsPreviousItem", False
+            ),
+            is_study=obj.get("IsStudy", False),
+            all_day=obj.get("AllDay", False),
+            within_the_same_day=obj.get("WithinTheSameDay", False),
+            event_locations=[
+                EventLocation.de_json(sub_obj)
+                for sub_obj in obj.get("EventLocations", [])
+            ]
+        )
+
+
+@dataclass
+class EdEEventsDay(_JsonDeserializable):
+    day: Optional[date]
+    day_string: Optional[str]
+    day_study_events: List[EdEEvent] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EdEEventsDay:
+        obj = cls.check_json(json_type)
+        day = obj.get("Day")
+        if day:
+            day = datetime.strptime(day, "%Y-%m-%dT%H:%M:%S").date()
+        return cls(
+            day=day,
+            day_string=obj.get("DayString"),
+            day_study_events=[
+                EdEEvent.de_json(sub_obj)
+                for sub_obj in obj.get("DayStudyEvents")
+            ]
+        )
+
+
+@dataclass
+class EducatorEvents(_JsonDeserializable):
+    educator_master_id: Optional[int]
+    educator_display_text: Optional[str]
+    educator_long_display_text: Optional[str]
+    previous_week_monday: Optional[date]
+    next_week_monday: Optional[date]
+    week_display_text: Optional[str]
+    week_monday: Optional[date]
+    is_previous_week_reference_available: bool = False
+    is_next_week_reference_available: bool = False
+    is_current_week_reference_available: bool = False
+    educator_events_days: List[EdEEventsDay] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> EducatorEvents:
+        obj = cls.check_json(json_type)
+        previous_week_monday = obj.get("PreviousWeekMonday")
+        if previous_week_monday:
+            previous_week_monday = datetime.strptime(
+                previous_week_monday, "%Y-%m-%d"
+            ).date()
+        next_week_monday = obj.get("NextWeekMonday")
+        if next_week_monday:
+            next_week_monday = datetime.strptime(
+                next_week_monday, "%Y-%m-%d"
+            ).date()
+        week_monday = obj.get("WeekMonday")
+        if week_monday:
+            week_monday = datetime.strptime(
+                week_monday, "%Y-%m-%d"
+            ).date()
+        return cls(
+            educator_master_id=obj.get("EducatorMasterId"),
+            educator_display_text=obj.get("EducatorDisplayText"),
+            educator_long_display_text=obj.get("EducatorLongDisplayText"),
+            previous_week_monday=previous_week_monday,
+            next_week_monday=next_week_monday,
+            week_display_text=obj.get("WeekDisplayText"),
+            week_monday=week_monday,
+            is_previous_week_reference_available=obj.get(
+                "IsPreviousWeekReferenceAvailable", False
+            ),
+            is_next_week_reference_available=obj.get(
+                "IsNextWeekReferenceAvailable", False
+            ),
+            is_current_week_reference_available=obj.get(
+                "IsCurrentWeekReferenceAvailable", False
+            ),
+            educator_events_days=[
+                EdEEventsDay.de_json(_obj)
+                for _obj in obj.get("EducatorEventsDays", [])
+            ]
+        )
+
+
+@dataclass
+class ClassroomBusyness(_JsonDeserializable):
+    oid: Optional[str]
+    from_datetime: Optional[datetime]
+    to_datetime: Optional[datetime]
+    is_busy: bool = False
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> ClassroomBusyness:
+        obj = cls.check_json(json_type)
+        from_datetime = obj.get("From")
+        if from_datetime:
+            from_datetime = datetime.strptime(
+                from_datetime, "%Y-%m-%dT%H:%M:%S"
+            )
+        to_datetime = obj.get("To")
+        if to_datetime:
+            to_datetime = datetime.strptime(
+                to_datetime, "%Y-%m-%dT%H:%M:%S"
+            )
+        return cls(
+            oid=obj.get("Oid"),
+            from_datetime=from_datetime,
+            to_datetime=to_datetime,
+            is_busy=obj.get("IsBusy", False)
+        )
+
+
+@dataclass
+class CEEvent(_JsonDeserializable):
+    start: Optional[datetime]
+    end: Optional[datetime]
+    subject: Optional[str]
+    time_interval_string: Optional[str]
+    educators_display_text: Optional[str]
+    study_events_timetable_kind_code: Optional[int]
+    is_cancelled: bool = False
+    dates: List[str] = field(default_factory=list)
+    contingent_unit_names: List[ContingentUnitName] = field(
+        default_factory=list
+    )
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> CEEvent:
+        obj = cls.check_json(json_type)
+        start = obj.get("Start")
+        if start:
+            start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+        end = obj.get("End")
+        if end:
+            end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+        return cls(
+            study_events_timetable_kind_code=obj.get(
+                "StudyEventsTimeTableKindCode"
+            ),
+            start=start,
+            end=end,
+            subject=obj.get("Subject"),
+            time_interval_string=obj.get("TimeIntervalString"),
+            educators_display_text=obj.get("EducatorsDisplayText"),
+            is_cancelled=obj.get("IsCancelled", False),
+            dates=obj.get("Dates", []),
+            contingent_unit_names=[
+                ContingentUnitName.de_json(_obj)
+                for _obj in obj.get("EventLocations", [])
+            ]
+        )
+
+
+@dataclass
+class CEEventsDay(_JsonDeserializable):
+    day: Optional[int]
+    day_string: Optional[str]
+    day_study_events_count: Optional[int]
+    day_study_events: List[CEEvent] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> CEEventsDay:
+        obj = cls.check_json(json_type)
+        return cls(
+            day=obj.get("Day"),
+            day_string=obj.get("DayString"),
+            day_study_events_count=obj.get("DayStudyEventsCount"),
+            day_study_events=[
+                CEEvent.de_json(_obj)
+                for _obj in obj.get("DayStudyEvents", [])
+            ]
+        )
+
+
+@dataclass
+class ClassroomEvents(_JsonDeserializable):
+    oid: Optional[str]
+    from_datetime: Optional[datetime]
+    to_datetime: Optional[datetime]
+    display_text: Optional[str]
+    has_events: bool = False
+    classroom_events_days: List[CEEventsDay] = field(default_factory=list)
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> ClassroomEvents:
+        obj = cls.check_json(json_type)
+        from_datetime = obj.get("From")
+        if from_datetime:
+            from_datetime = datetime.strptime(
+                from_datetime, "%Y-%m-%dT%H:%M:%S"
+            )
+        to_datetime = obj.get("To")
+        if to_datetime:
+            to_datetime = datetime.strptime(
+                to_datetime, "%Y-%m-%dT%H:%M:%S"
+            )
+        return cls(
+            oid=obj.get("Oid"),
+            from_datetime=from_datetime,
+            to_datetime=to_datetime,
+            display_text=obj.get("DisplayText"),
+            has_events=obj.get("HasEvents", False),
+            classroom_events_days=[
+                CEEventsDay.de_json(_obj)
+                for _obj in obj.get("ClassroomEventsDays", [])
+            ]
+        )
+
+
+@dataclass
+class Address(_JsonDeserializable):
+    oid: Optional[str]
+    display_name: Optional[str]
+    matches: Optional[int]
+    wanting_equipment: Optional[str]
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> Address:
+        obj = cls.check_json(json_type)
+        return cls(
+            oid=obj.get("Oid"),
+            display_name=obj.get("DisplayName1"),
+            matches=obj.get("matches"),
+            wanting_equipment=obj.get("wantingEquipment")
+        )
+
+
+@dataclass
+class Classroom(_JsonDeserializable):
+    oid: Optional[str]
+    display_name: Optional[str]
+    seating_type: Optional[str]
+    capacity: Optional[int]
+    additional_info: Optional[str]
+    wanting_equipment: Optional[str]
+
+    @classmethod
+    def de_json(cls, json_type: JSON_TYPE) -> Classroom:
+        obj = cls.check_json(json_type)
+        return cls(
+            oid=obj.get("Oid"),
+            display_name=obj.get("DisplayName1"),
+            seating_type=obj.get("SeatingType"),
+            capacity=obj.get("Capacity"),
+            additional_info=obj.get("AdditionalInfo"),
+            wanting_equipment=obj.get("wantingEquipment")
+        )
 
 
 class ApiException(Exception):
