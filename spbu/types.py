@@ -219,7 +219,7 @@ class GEEvent(_JsonDeserializable):
     educator_ids: List[EducatorId] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> GEEvent:
+    def de_json(cls, json_type: JSON_TYPE) -> 'GEEvent':
         obj = cls.check_json(json_type)
         start = obj.get("Start")
         if start:
@@ -308,7 +308,7 @@ class GroupEvents(_JsonDeserializable):
     days: List[GEEventsDay] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> GroupEvents:
+    def de_json(cls, json_type: JSON_TYPE) -> 'GroupEvents':
         obj = cls.check_json(json_type)
         previous_week_monday = obj.get("PreviousWeekMonday")
         if previous_week_monday:
