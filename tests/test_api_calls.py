@@ -1,8 +1,6 @@
 import unittest
 from datetime import datetime, timedelta, date
 
-import requests
-
 import spbu
 
 
@@ -172,13 +170,6 @@ class TestApiCalls(unittest.TestCase):
             spbu.ApiException,
             spbu.search_educator,
             query="Смирнов А. В."
-        )
-
-    def test_search_educator_timeout_fail(self):
-        self.assertRaises(
-            requests.ReadTimeout,
-            spbu.search_educator,
-            query="_"
         )
 
     def test_extracur_events_fail(self):
