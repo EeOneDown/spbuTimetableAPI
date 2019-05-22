@@ -979,14 +979,15 @@ class ClassroomBusyness(_JsonDeserializable):
 
 @dataclass
 class CEEvent(_JsonDeserializable):
-    start: Optional[datetime]
-    end: Optional[datetime]
+    start: Optional[time]
+    end: Optional[time]
     subject: Optional[str]
     time_interval_string: Optional[str]
     educators_display_text: Optional[str]
     study_events_timetable_kind_code: Optional[int]
     is_cancelled: bool = False
     dates: List[str] = field(default_factory=list)
+    educator_ids: List[EducatorId] = field(default_factory=list)
     contingent_unit_names: List[ContingentUnitName] = field(
         default_factory=list
     )
@@ -996,10 +997,10 @@ class CEEvent(_JsonDeserializable):
         obj = cls.check_json(json_type)
         start = obj.get("Start")
         if start:
-            start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+            start = datetime.strptime(start, "%H:%M:%S").time()
         end = obj.get("End")
         if end:
-            end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+            end = datetime.strptime(end, "%H:%M:%S").time()
         return cls(
             study_events_timetable_kind_code=obj.get(
                 "StudyEventsTimeTableKindCode"
@@ -1011,9 +1012,13 @@ class CEEvent(_JsonDeserializable):
             educators_display_text=obj.get("EducatorsDisplayText"),
             is_cancelled=obj.get("IsCancelled", False),
             dates=obj.get("Dates", []),
+            educator_ids=[
+                EducatorId.de_json(sub_obj)
+                for sub_obj in obj.get("EducatorIds", [])
+            ],
             contingent_unit_names=[
                 ContingentUnitName.de_json(_obj)
-                for _obj in obj.get("EventLocations", [])
+                for _obj in obj.get("ContingentUnitNames", [])
             ]
         )
 
