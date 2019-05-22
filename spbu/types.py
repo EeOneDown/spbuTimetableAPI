@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import abc
 import json
 from dataclasses import dataclass, field
@@ -22,7 +20,7 @@ class _JsonDeserializable(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def de_json(cls, json_type: JSON_TYPE) -> _JsonDeserializable:
+    def de_json(cls, json_type: JSON_TYPE) -> '_JsonDeserializable':
         ...
 
     @staticmethod
@@ -51,7 +49,7 @@ class SDStudyDivision(_JsonDeserializable):
     name: Optional[str]
 
     @classmethod
-    def de_json(cls, json_string: JSON_TYPE) -> SDStudyDivision:
+    def de_json(cls, json_string: JSON_TYPE) -> 'SDStudyDivision':
         obj = cls.check_json(json_string)
         return cls(
             oid=obj.get('Oid'),
@@ -69,7 +67,7 @@ class SDPLAdmissionYear(_JsonDeserializable):
     is_empty: bool = True
 
     @classmethod
-    def de_json(cls, json_string: JSON_TYPE) -> SDPLAdmissionYear:
+    def de_json(cls, json_string: JSON_TYPE) -> 'SDPLAdmissionYear':
         obj = cls.check_json(json_string)
         return cls(
             study_program_id=obj.get('StudyProgramId'),
@@ -87,7 +85,7 @@ class SDPLProgramCombination(_JsonDeserializable):
     admission_years: List[SDPLAdmissionYear] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_string: JSON_TYPE) -> SDPLProgramCombination:
+    def de_json(cls, json_string: JSON_TYPE) -> 'SDPLProgramCombination':
         obj = cls.check_json(json_string)
         return cls(
             name=obj.get('Name'),
@@ -109,7 +107,7 @@ class SDPLStudyLevel(_JsonDeserializable):
     )
 
     @classmethod
-    def de_json(cls, json_string: JSON_TYPE) -> SDPLStudyLevel:
+    def de_json(cls, json_string: JSON_TYPE) -> 'SDPLStudyLevel':
         obj = cls.check_json(json_string)
         return cls(
             study_level_name=obj.get('StudyLevelName'),
@@ -131,7 +129,7 @@ class PGGroup(_JsonDeserializable):
     public_division_alias: Optional[str]
 
     @classmethod
-    def de_json(cls, json_string: JSON_TYPE) -> PGGroup:
+    def de_json(cls, json_string: JSON_TYPE) -> 'PGGroup':
         obj = cls.check_json(json_string)
         return cls(
             student_group_id=obj.get('StudentGroupId'),
@@ -148,7 +146,7 @@ class EducatorId(_JsonDeserializable):
     name: Optional[str]
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EducatorId:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EducatorId':
         obj = cls.check_json(json_type)
         return cls(
             eid=obj.get('Item1'),
@@ -170,7 +168,7 @@ class EventLocation(_JsonDeserializable):
     educator_ids: List[EducatorId] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EventLocation:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EventLocation':
         obj = cls.check_json(json_type)
         return cls(
             is_empty=obj.get("IsEmpty", True),
@@ -280,7 +278,7 @@ class GEEventsDay(_JsonDeserializable):
     day_study_events: List[GEEvent] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> GEEventsDay:
+    def de_json(cls, json_type: JSON_TYPE) -> 'GEEventsDay':
         obj = cls.check_json(json_type)
         day = obj.get("Day")
         if day:
@@ -354,7 +352,7 @@ class ExtracurDivision(_JsonDeserializable):
     name: Optional[str]
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ExtracurDivision:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ExtracurDivision':
         obj = cls.check_json(json_type)
         return cls(
             alias=obj.get("Alias"),
@@ -373,7 +371,7 @@ class AddressLocation(_JsonDeserializable):
     has_geographic_coordinates: Optional[bool] = False
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> AddressLocation:
+    def de_json(cls, json_type: JSON_TYPE) -> 'AddressLocation':
         obj = cls.check_json(json_type)
         return cls(
             is_empty=obj.get("IsEmpty"),
@@ -395,7 +393,7 @@ class ExEEventsDay(_JsonDeserializable):
     day_events: List[ExtracurEvent] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ExEEventsDay:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ExEEventsDay':
         obj = cls.check_json(json_type)
         day = obj.get("Day")
         if day:
@@ -448,7 +446,7 @@ class ExtracurEvent(_JsonDeserializable):
     is_study: bool = False
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ExtracurEvent:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ExtracurEvent':
         obj = cls.check_json(json_type)
         start = obj.get("Start")
         if start:
@@ -514,7 +512,7 @@ class ExEEventsByKind(_JsonDeserializable):
     events: List[ExtracurEvent] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ExEEventsByKind:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ExEEventsByKind':
         obj = cls.check_json(json_type)
         return cls(
             caption=obj.get("Caption"),
@@ -549,7 +547,7 @@ class ExtracurEvents(_JsonDeserializable):
     days: List[ExEEventsDay] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ExtracurEvents:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ExtracurEvents':
         obj = cls.check_json(json_type)
         previous_month_date = obj.get("PreviousMonthDate")
         if previous_month_date:
@@ -625,7 +623,7 @@ class Educator(_JsonDeserializable):
     employments: List[EdEmployment] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> Educator:
+    def de_json(cls, json_type: JSON_TYPE) -> 'Educator':
         obj = cls.check_json(json_type)
         return cls(
             id=obj.get("Id"),
@@ -644,7 +642,7 @@ class EdEmployment(_JsonDeserializable):
     department: Optional[str]
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EdEmployment:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EdEmployment':
         obj = cls.check_json(json_type)
         return cls(
             position=obj.get("Position"),
@@ -658,7 +656,7 @@ class ContingentUnitName(_JsonDeserializable):
     courses: Optional[str]
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ContingentUnitName:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ContingentUnitName':
         obj = cls.check_json(json_type)
         return cls(
             groups=obj.get("Item1"),
@@ -683,7 +681,7 @@ class EdETEvent(_JsonDeserializable):
     )
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EdETEvent:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EdETEvent':
         obj = cls.check_json(json_type)
         start = obj.get("Start")
         if start:
@@ -729,7 +727,7 @@ class EdETEventsDay(_JsonDeserializable):
     day_study_events: List[EdETEvent] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EdETEventsDay:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EdETEventsDay':
         obj = cls.check_json(json_type)
         return cls(
             day=obj.get("Day"),
@@ -759,7 +757,7 @@ class EducatorEventsTerm(_JsonDeserializable):
     educator_events_days: List[EdETEventsDay] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EducatorEventsTerm:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EducatorEventsTerm':
         obj = cls.check_json(json_type)
         from_date = obj.get("From")
         if from_date:
@@ -823,7 +821,7 @@ class EdEEvent(_JsonDeserializable):
     event_locations: List[EventLocation] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EdEEvent:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EdEEvent':
         obj = cls.check_json(json_type)
         start = obj.get("Start")
         if start:
@@ -877,7 +875,7 @@ class EdEEventsDay(_JsonDeserializable):
     day_study_events: List[EdEEvent] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EdEEventsDay:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EdEEventsDay':
         obj = cls.check_json(json_type)
         day = obj.get("Day")
         if day:
@@ -907,7 +905,7 @@ class EducatorEvents(_JsonDeserializable):
     educator_events_days: List[EdEEventsDay] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> EducatorEvents:
+    def de_json(cls, json_type: JSON_TYPE) -> 'EducatorEvents':
         obj = cls.check_json(json_type)
         previous_week_monday = obj.get("PreviousWeekMonday")
         if previous_week_monday:
@@ -956,7 +954,7 @@ class ClassroomBusyness(_JsonDeserializable):
     is_busy: bool = False
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ClassroomBusyness:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ClassroomBusyness':
         obj = cls.check_json(json_type)
         from_datetime = obj.get("From")
         if from_datetime:
@@ -992,7 +990,7 @@ class CEEvent(_JsonDeserializable):
     )
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> CEEvent:
+    def de_json(cls, json_type: JSON_TYPE) -> 'CEEvent':
         obj = cls.check_json(json_type)
         start = obj.get("Start")
         if start:
@@ -1030,7 +1028,7 @@ class CEEventsDay(_JsonDeserializable):
     day_study_events: List[CEEvent] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> CEEventsDay:
+    def de_json(cls, json_type: JSON_TYPE) -> 'CEEventsDay':
         obj = cls.check_json(json_type)
         return cls(
             day=obj.get("Day"),
@@ -1053,7 +1051,7 @@ class ClassroomEvents(_JsonDeserializable):
     classroom_events_days: List[CEEventsDay] = field(default_factory=list)
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> ClassroomEvents:
+    def de_json(cls, json_type: JSON_TYPE) -> 'ClassroomEvents':
         obj = cls.check_json(json_type)
         from_datetime = obj.get("From")
         if from_datetime:
@@ -1086,7 +1084,7 @@ class Address(_JsonDeserializable):
     wanting_equipment: Optional[str]
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> Address:
+    def de_json(cls, json_type: JSON_TYPE) -> 'Address':
         obj = cls.check_json(json_type)
         return cls(
             oid=obj.get("Oid"),
@@ -1106,7 +1104,7 @@ class Classroom(_JsonDeserializable):
     wanting_equipment: Optional[str]
 
     @classmethod
-    def de_json(cls, json_type: JSON_TYPE) -> Classroom:
+    def de_json(cls, json_type: JSON_TYPE) -> 'Classroom':
         obj = cls.check_json(json_type)
         return cls(
             oid=obj.get("Oid"),
