@@ -1,8 +1,9 @@
-import unittest
-from unittest.mock import patch
-from datetime import datetime, time
-import spbu
 import json
+import unittest
+from datetime import datetime, time
+from unittest.mock import patch
+
+import spbu
 
 
 def load_dataset(filename: str):
@@ -23,54 +24,58 @@ class TestTypesParsing(unittest.TestCase):
     @patch('spbu.util.call_api', return_value=load_dataset('addresses'))
     def test_addresses_parsing(self, call_api):
         addresses = spbu.get_addresses()
+        dataset_addresses = call_api()
+
+        self.assertEqual(len(addresses), len(dataset_addresses))
         for i in range(len(addresses)):
             self.assertEqual(
                 addresses[i].oid,
-                call_api()[i]['Oid']
+                dataset_addresses[i]['Oid']
             )
             self.assertEqual(
                 addresses[i].display_name,
-                call_api()[i]['DisplayName1']
+                dataset_addresses[i]['DisplayName1']
             )
             self.assertEqual(
                 addresses[i].matches,
-                call_api()[i]['matches']
+                dataset_addresses[i]['matches']
             )
             self.assertEqual(
                 addresses[i].wanting_equipment,
-                call_api()[i]['wantingEquipment']
+                dataset_addresses[i]['wantingEquipment']
             )
 
     @patch('spbu.util.call_api', return_value=load_dataset('classrooms'))
     def test_classrooms_parsing(self, call_api):
         oid = '6572bd45-973c-4075-9d23-9dc728b37828'
         classrooms = spbu.get_classrooms(oid)
+        dataset_classrooms = call_api()
 
-        self.assertEqual(len(classrooms), len(call_api()))
+        self.assertEqual(len(classrooms), len(dataset_classrooms))
         for i in range(len(classrooms)):
             self.assertEqual(
                 classrooms[i].oid,
-                call_api()[i]['Oid']
+                dataset_classrooms[i]['Oid']
             )
             self.assertEqual(
                 classrooms[i].display_name,
-                call_api()[i]['DisplayName1']
+                dataset_classrooms[i]['DisplayName1']
             )
             self.assertEqual(
                 classrooms[i].seating_type,
-                call_api()[i]['SeatingType']
+                dataset_classrooms[i]['SeatingType']
             )
             self.assertEqual(
                 classrooms[i].capacity,
-                call_api()[i]['Capacity']
+                dataset_classrooms[i]['Capacity']
             )
             self.assertEqual(
                 classrooms[i].additional_info,
-                call_api()[i]['AdditionalInfo']
+                dataset_classrooms[i]['AdditionalInfo']
             )
             self.assertEqual(
                 classrooms[i].wanting_equipment,
-                call_api()[i]['wantingEquipment']
+                dataset_classrooms[i]['wantingEquipment']
             )
 
     @patch('spbu.util.call_api',
@@ -82,21 +87,23 @@ class TestTypesParsing(unittest.TestCase):
             datetime(year=2019, month=5, day=20, hour=10, minute=0),
             datetime(year=2019, month=5, day=20, hour=12, minute=0)
         )
+        dataset_is_busy = call_api()
+
         self.assertEqual(
             is_busy.oid,
-            call_api()['Oid']
+            dataset_is_busy['Oid']
         )
         self.assertEqual(
             datetime_to_str(is_busy.from_datetime),
-            call_api()['From']
+            dataset_is_busy['From']
         )
         self.assertEqual(
             datetime_to_str(is_busy.to_datetime),
-            call_api()['To']
+            dataset_is_busy['To']
         )
         self.assertEqual(
             is_busy.is_busy,
-            call_api()['IsBusy']
+            dataset_is_busy['IsBusy']
         )
 
     @patch('spbu.util.call_api', return_value=load_dataset('classroom_events'))
@@ -107,32 +114,33 @@ class TestTypesParsing(unittest.TestCase):
             datetime(year=2019, month=5, day=20, hour=8, minute=0),
             datetime(year=2019, month=5, day=25, hour=11, minute=0)
         )
+        dataset_classroom_events = call_api()
         self.assertEqual(
             classroom_events.oid,
-            call_api()['Oid']
+            dataset_classroom_events['Oid']
         )
         self.assertEqual(
             datetime_to_str(classroom_events.from_datetime),
-            call_api()['From']
+            dataset_classroom_events['From']
         )
         self.assertEqual(
             datetime_to_str(classroom_events.to_datetime),
-            call_api()['To']
+            dataset_classroom_events['To']
         )
         self.assertEqual(
             classroom_events.display_text,
-            call_api()['DisplayText']
+            dataset_classroom_events['DisplayText']
         )
         self.assertEqual(
             classroom_events.has_events,
-            call_api()['HasEvents']
+            dataset_classroom_events['HasEvents']
         )
         self.assertEqual(
             len(classroom_events.classroom_events_days),
-            len(call_api()['ClassroomEventsDays'])
+            len(dataset_classroom_events['ClassroomEventsDays'])
         )
         days = classroom_events.classroom_events_days
-        dataset_days = call_api()['ClassroomEventsDays']
+        dataset_days = dataset_classroom_events['ClassroomEventsDays']
         for i in range(len(days)):
             self.assertEqual(
                 days[i].day,

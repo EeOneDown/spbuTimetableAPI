@@ -1,6 +1,8 @@
 import unittest
 from datetime import datetime, timedelta, date
 
+import requests
+
 import spbu
 
 
@@ -143,50 +145,78 @@ class TestApiCalls(unittest.TestCase):
                 spbu.types.SDPLStudyLevel
             )
 
-    @unittest.expectedFailure
     def test_classrooms_fail(self):
-        spbu.get_classrooms(oid="TEST")
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.get_classrooms,
+            oid="TEST"
+        )
 
-    @unittest.expectedFailure
     def test_classroom_id_busy_fail(self):
         oid = "43c30746-7ac2-430d-b820-088373d73130"
-        spbu.is_classroom_busy(
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.is_classroom_busy,
             oid=oid, start=datetime.today(), end=datetime.today() - timedelta(8)
         )
 
-    @unittest.expectedFailure
     def test_educator_events_fail(self):
-        spbu.get_educator_term_events(11)
-
-    @unittest.expectedFailure
-    def test_search_educator_fail(self):
-        spbu.search_educator("Смирнов А. В.")
-
-    @unittest.expectedFailure
-    def test_search_educator_timeout_fail(self):
-        spbu.search_educator("_")
-
-    @unittest.expectedFailure
-    def test_extracur_events_fail(self):
-        spbu.get_extracur_events("TEST")
-
-    @unittest.expectedFailure
-    def test_group_events_fail_id(self):
-        spbu.get_group_events(5545)
-
-    @unittest.expectedFailure
-    def test_group_events_fail_dates(self):
-        spbu.get_group_events(
-            15158, from_date=date.today() + timedelta(99), to_date=date.today()
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.get_educator_term_events,
+            educator_id=11
         )
 
-    @unittest.expectedFailure
-    def test_groups_fail(self):
-        spbu.get_groups(1)
+    def test_search_educator_fail(self):
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.search_educator,
+            query="Смирнов А. В."
+        )
 
-    @unittest.expectedFailure
+    def test_search_educator_timeout_fail(self):
+        self.assertRaises(
+            requests.ReadTimeout,
+            spbu.search_educator,
+            query="_"
+        )
+
+    def test_extracur_events_fail(self):
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.get_extracur_events,
+            alias="TEST"
+        )
+
+    def test_group_events_fail_id(self):
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.get_group_events,
+            group_id=5545
+        )
+
+    def test_group_events_fail_dates(self):
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.get_group_events,
+            group_id=15158,
+            from_date=date.today() + timedelta(99),
+            to_date=date.today()
+        )
+
+    def test_groups_fail(self):
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.get_groups,
+            program_id=1
+        )
+
     def test_program_levels_fail(self):
-        spbu.get_programs("TEST")
+        self.assertRaises(
+            spbu.ApiException,
+            spbu.get_programs,
+            alias="TEST"
+        )
 
 
 if __name__ == '__main__':

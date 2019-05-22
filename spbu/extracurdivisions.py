@@ -1,9 +1,9 @@
 from datetime import date
 from typing import List
 
+from . import util
 from .consts import APIMethods
 from .types import ExtracurDivision, ExtracurEvents
-from . import util
 
 
 def get_extracur_divisions() -> List[ExtracurDivision]:

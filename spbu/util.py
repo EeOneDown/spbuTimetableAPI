@@ -1,7 +1,9 @@
+from typing import Union
+
 from requests import get, Response
+
 from spbu.consts import APIMethods, BASE_URL
 from spbu.types import ApiException
-from typing import Union
 
 
 def _make_request(url: str, params: dict = None, timeout: int = 5) -> Response:

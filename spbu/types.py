@@ -10,7 +10,6 @@ from requests import models
 
 from spbu.consts import error_msg
 
-
 JSON_TYPE = TypeVar('JSON_TYPE', dict, str)
 
 
