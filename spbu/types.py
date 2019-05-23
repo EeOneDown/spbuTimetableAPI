@@ -390,7 +390,7 @@ class AddressLocation(_JsonDeserializable):
 class ExEEventsDay(_JsonDeserializable):
     day: Optional[date]
     day_string: Optional[str]
-    day_events: List[ExtracurEvent] = field(default_factory=list)
+    day_events: List['ExtracurEvent'] = field(default_factory=list)
 
     @classmethod
     def de_json(cls, json_type: JSON_TYPE) -> 'ExEEventsDay':
@@ -620,7 +620,7 @@ class Educator(_JsonDeserializable):
     id: Optional[int]
     display_name: Optional[str]
     full_name: Optional[str]
-    employments: List[EdEmployment] = field(default_factory=list)
+    employments: List['EdEmployment'] = field(default_factory=list)
 
     @classmethod
     def de_json(cls, json_type: JSON_TYPE) -> 'Educator':
