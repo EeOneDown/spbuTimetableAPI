@@ -671,8 +671,8 @@ class EdETEvent(_JsonDeserializable):
     subject: Optional[str]
     time_interval_string: Optional[str]
     educators_display_text: Optional[str]
-    study_events_time_table_kind_code: Optional[int]
-    is_canceled: bool = False
+    study_events_timetable_kind_code: Optional[int]
+    is_cancelled: bool = False
     dates: List[str] = field(default_factory=list)
     educator_ids: List[EducatorId] = field(default_factory=list)
     event_locations: List[EventLocation] = field(default_factory=list)
@@ -699,10 +699,10 @@ class EdETEvent(_JsonDeserializable):
             subject=obj.get("Subject"),
             time_interval_string=obj.get("TimeIntervalString"),
             educators_display_text=obj.get("EducatorsDisplayText"),
-            study_events_time_table_kind_code=obj.get(
+            study_events_timetable_kind_code=obj.get(
                 "StudyEventsTimeTableKindCode"
             ),
-            is_canceled=obj.get("IsCanceled", False),
+            is_cancelled=obj.get("IsCanceled", False),
             dates=obj.get("Dates", []),
             educator_ids=[
                 EducatorId.de_json(_obj)
@@ -764,7 +764,7 @@ class EducatorEventsTerm(_JsonDeserializable):
             from_date = datetime.strptime(
                 from_date, "%Y-%m-%dT%H:%M:%S"
             ).date()
-        to_date = obj.get("From")
+        to_date = obj.get("To")
         if to_date:
             to_date = datetime.strptime(
                 to_date, "%Y-%m-%dT%H:%M:%S"
