@@ -38,6 +38,84 @@ def time_to_str(t: Optional[time]) -> Optional[str]:
 
 
 class TestTypesParsing(unittest.TestCase):
+    def _assertEducators(self, obj: list, jsn: list):
+        self.assertEqual(
+            len(obj),
+            len(jsn)
+        )
+        for i in range(len(obj)):
+            self.assertEqual(
+                obj[i].eid,
+                jsn[i]['Item1']
+            )
+            self.assertEqual(
+                obj[i].name,
+                jsn[i]['Item2']
+            )
+
+    def _assertContingentUnits(self, obj: list, jsn: list):
+        self.assertEqual(
+            len(obj),
+            len(jsn)
+        )
+        for i in range(len(obj)):
+            self.assertEqual(
+                obj[i].groups,
+                jsn[i]['Item1']
+            )
+            self.assertEqual(
+                obj[i].courses,
+                jsn[i]['Item2']
+            )
+
+    def _assertLocations(self, obj: list, jsn: list, educators: bool = False):
+        self.assertEqual(
+            len(obj),
+            len(jsn)
+        )
+        for i in range(len(obj)):
+            self.assertEqual(
+                obj[i].is_empty,
+                jsn[i]['IsEmpty']
+            )
+            self.assertEqual(
+                obj[i].display_name,
+                jsn[i]['DisplayName']
+            )
+            self.assertEqual(
+                obj[i].has_geographic_coordinates,
+                jsn[i]['HasGeographicCoordinates']
+            )
+            self.assertEqual(
+                obj[i].latitude,
+                jsn[i]['Latitude']
+            )
+            self.assertEqual(
+                obj[i].longitude,
+                jsn[i]['Longitude']
+            )
+            self.assertEqual(
+                obj[i].latitude_value,
+                jsn[i]['LatitudeValue']
+            )
+            self.assertEqual(
+                obj[i].longitude_value,
+                jsn[i]['LongitudeValue']
+            )
+            if educators:
+                self.assertEqual(
+                    obj[i].educators_display_text,
+                    jsn[i]['EducatorsDisplayText']
+                )
+                self.assertEqual(
+                    obj[i].has_educators,
+                    jsn[i]['HasEducators']
+                )
+                self._assertEducators(
+                    obj[i].educator_ids,
+                    jsn[i]['EducatorIds']
+                )
+
     @patch('spbu.util.call_api', return_value=load_dataset('addresses'))
     def test_addresses_parsing(self, call_api):
         addresses = spbu.get_addresses()
@@ -211,36 +289,14 @@ class TestTypesParsing(unittest.TestCase):
                     events[j].study_events_timetable_kind_code,
                     dataset_events[j]['StudyEventsTimeTableKindCode']
                 )
-                self.assertEqual(
-                    len(events[j].educator_ids),
-                    len(dataset_events[j]['EducatorIds'])
+                self._assertEducators(
+                    events[j].educator_ids,
+                    dataset_events[j]['EducatorIds']
                 )
-                educators = events[j].educator_ids
-                dataset_educators = dataset_events[j]['EducatorIds']
-                for k in range(len(educators)):
-                    self.assertEqual(
-                        educators[k].eid,
-                        dataset_educators[k]['Item1']
-                    )
-                    self.assertEqual(
-                        educators[k].name,
-                        dataset_educators[k]['Item2']
-                    )
-                self.assertEqual(
-                    len(events[j].contingent_unit_names),
-                    len(dataset_events[j]['ContingentUnitNames'])
+                self._assertContingentUnits(
+                    events[j].contingent_unit_names,
+                    dataset_events[j]['ContingentUnitNames']
                 )
-                units = events[j].contingent_unit_names
-                dataset_units = dataset_events[j]['ContingentUnitNames']
-                for k in range(len(units)):
-                    self.assertEqual(
-                        units[k].groups,
-                        dataset_units[k]['Item1']
-                    )
-                    self.assertEqual(
-                        units[k].courses,
-                        dataset_units[k]['Item2']
-                    )
 
     @patch('spbu.util.call_api', return_value=load_dataset('educators'))
     def test_educators_parsing(self, call_api):
@@ -390,97 +446,22 @@ class TestTypesParsing(unittest.TestCase):
                     events[j].study_events_timetable_kind_code,
                     dataset_events[j]['StudyEventsTimeTableKindCode']
                 )
-                self.assertEqual(
-                    len(events[j].educator_ids),
-                    len(dataset_events[j]['EducatorIds'])
+                self._assertEducators(
+                    events[j].educator_ids,
+                    dataset_events[j]['EducatorIds']
                 )
-                educators = events[j].educator_ids
-                dataset_educators = dataset_events[j]['EducatorIds']
-                for k in range(len(educators)):
-                    self.assertEqual(
-                        educators[k].eid,
-                        dataset_educators[k]['Item1']
-                    )
-                    self.assertEqual(
-                        educators[k].name,
-                        dataset_educators[k]['Item2']
-                    )
-                self.assertEqual(
-                    len(events[j].event_locations),
-                    len(dataset_events[j]['EventLocations'])
+                self._assertLocations(
+                    events[j].event_locations,
+                    dataset_events[j]['EventLocations'],
+                    educators=True
                 )
-                locations = events[j].event_locations
-                dataset_locations = dataset_events[j]['EventLocations']
-                for k in range(len(locations)):
-                    self.assertEqual(
-                        locations[k].is_empty,
-                        dataset_locations[k]['IsEmpty']
-                    )
-                    self.assertEqual(
-                        locations[k].display_name,
-                        dataset_locations[k]['DisplayName']
-                    )
-                    self.assertEqual(
-                        locations[k].has_geographic_coordinates,
-                        dataset_locations[k]['HasGeographicCoordinates']
-                    )
-                    self.assertEqual(
-                        locations[k].latitude,
-                        dataset_locations[k]['Latitude']
-                    )
-                    self.assertEqual(
-                        locations[k].longitude,
-                        dataset_locations[k]['Longitude']
-                    )
-                    self.assertEqual(
-                        locations[k].latitude_value,
-                        dataset_locations[k]['LatitudeValue']
-                    )
-                    self.assertEqual(
-                        locations[k].longitude_value,
-                        dataset_locations[k]['LongitudeValue']
-                    )
-                    self.assertEqual(
-                        locations[k].educators_display_text,
-                        dataset_locations[k]['EducatorsDisplayText']
-                    )
-                    self.assertEqual(
-                        locations[k].has_educators,
-                        dataset_locations[k]['HasEducators']
-                    )
-                    self.assertEqual(
-                        len(locations[k].educator_ids),
-                        len(dataset_locations[k]['EducatorIds'])
-                    )
-                    educators = locations[k].educator_ids
-                    dataset_educators = dataset_locations[k]['EducatorIds']
-                    for l in range(len(educators)):
-                        self.assertEqual(
-                            educators[l].eid,
-                            dataset_educators[l]['Item1']
-                        )
-                        self.assertEqual(
-                            educators[l].name,
-                            dataset_educators[l]['Item2']
-                        )
-                self.assertEqual(
-                    len(events[j].contingent_unit_names),
-                    len(dataset_events[j]['ContingentUnitNames'])
+                self._assertContingentUnits(
+                    events[j].contingent_unit_names,
+                    dataset_events[j]['ContingentUnitNames']
                 )
-                units = events[j].contingent_unit_names
-                dataset_units = dataset_events[j]['ContingentUnitNames']
-                for k in range(len(units)):
-                    self.assertEqual(
-                        units[k].groups,
-                        dataset_units[k]['Item1']
-                    )
-                    self.assertEqual(
-                        units[k].courses,
-                        dataset_units[k]['Item2']
-                    )
 
     @patch('spbu.util.call_api', return_value=load_dataset('educator_events'))
-    def test_1420_parsing(self, call_api):
+    def test_educator_events_parsing(self, call_api):
         educator_id = 1420
         from_date = date(2019, 4, 1)
         to_date = date(2019, 4, 8)
@@ -643,64 +624,123 @@ class TestTypesParsing(unittest.TestCase):
                     events[j].within_the_same_day,
                     dataset_events[j]['WithinTheSameDay']
                 )
-                self.assertEqual(
-                    len(events[j].event_locations),
-                    len(dataset_events[j]['EventLocations'])
+                self._assertLocations(
+                    events[j].event_locations,
+                    dataset_events[j]['EventLocations'],
+                    educators=True
                 )
-                locations = events[j].event_locations
-                dataset_locations = dataset_events[j]['EventLocations']
-                for k in range(len(locations)):
-                    self.assertEqual(
-                        locations[k].is_empty,
-                        dataset_locations[k]['IsEmpty']
-                    )
-                    self.assertEqual(
-                        locations[k].display_name,
-                        dataset_locations[k]['DisplayName']
-                    )
-                    self.assertEqual(
-                        locations[k].has_geographic_coordinates,
-                        dataset_locations[k]['HasGeographicCoordinates']
-                    )
-                    self.assertEqual(
-                        locations[k].latitude,
-                        dataset_locations[k]['Latitude']
-                    )
-                    self.assertEqual(
-                        locations[k].longitude,
-                        dataset_locations[k]['Longitude']
-                    )
-                    self.assertEqual(
-                        locations[k].latitude_value,
-                        dataset_locations[k]['LatitudeValue']
-                    )
-                    self.assertEqual(
-                        locations[k].longitude_value,
-                        dataset_locations[k]['LongitudeValue']
-                    )
-                    self.assertEqual(
-                        locations[k].educators_display_text,
-                        dataset_locations[k]['EducatorsDisplayText']
-                    )
-                    self.assertEqual(
-                        locations[k].has_educators,
-                        dataset_locations[k]['HasEducators']
-                    )
-                    self.assertEqual(
-                        len(locations[k].educator_ids),
-                        len(dataset_locations[k]['EducatorIds'])
-                    )
-                    educators = locations[k].educator_ids
-                    dataset_educators = dataset_locations[k]['EducatorIds']
-                    for l in range(len(educators)):
-                        self.assertEqual(
-                            educators[l].eid,
-                            dataset_educators[l]['Item1']
-                        )
-                        self.assertEqual(
-                            educators[l].name,
-                            dataset_educators[l]['Item2']
-                        )
+
+    @patch('spbu.util.call_api',
+           return_value=load_dataset('extracur_divisions'))
+    def test_extracur_divisions_parsing(self, call_api):
+        extracur_divisions = spbu.get_extracur_divisions()
+        dataset_extracur_divisions = call_api()
+
+        self.assertEqual(
+            len(extracur_divisions),
+            len(dataset_extracur_divisions)
+        )
+        for i in range(len(extracur_divisions)):
+            self.assertEqual(
+                extracur_divisions[i].alias,
+                dataset_extracur_divisions[i]['Alias']
+            )
+            self.assertEqual(
+                extracur_divisions[i].name,
+                dataset_extracur_divisions[i]['Name']
+            )
+
+    @patch('spbu.util.call_api',
+           return_value=load_dataset('extracur_events'))
+    def test_extracur_events_parsing(self, call_api):
+        alias = 'PhysTraining'
+        extracur_events = spbu.get_extracur_events(alias=alias)
+        dataset_extracur_events = call_api()
+
+        self.assertEqual(
+            extracur_events.alias,
+            dataset_extracur_events['Alias']
+        )
+        self.assertEqual(
+            extracur_events.title,
+            dataset_extracur_events['Title']
+        )
+        self.assertEqual(
+            extracur_events.has_events_to_show,
+            dataset_extracur_events['HasEventsToShow']
+        )
+        self.assertEqual(
+            extracur_events.chosen_month_display_text,
+            dataset_extracur_events.get('ChosenMonthDisplayText')
+        )
+        self.assertEqual(
+            extracur_events.previous_month_display_text,
+            dataset_extracur_events.get('PreviousMonthDisplayText')
+        )
+        self.assertEqual(
+            extracur_events.previous_month_date,
+            dataset_extracur_events.get('PreviousMonthDate')
+        )
+        self.assertEqual(
+            extracur_events.next_month_display_text,
+            dataset_extracur_events.get('NextMonthDisplayText')
+        )
+        self.assertEqual(
+            extracur_events.next_month_date,
+            dataset_extracur_events.get('NextMonthDate')
+        )
+        self.assertEqual(
+            extracur_events.is_current_month_reference_available,
+            dataset_extracur_events.get('IsCurrentMonthReferenceAvailable',
+                                        False)
+        )
+        self.assertEqual(
+            extracur_events.show_grouping_captions,
+            dataset_extracur_events.get('ShowGroupingCaptions', False)
+        )
+        # TODO: assert lists
+        self.assertEqual(
+            len(extracur_events.event_groupings),
+            len(dataset_extracur_events.get('EventGroupings', []))
+        )
+        self.assertEqual(
+            extracur_events.is_previous_week_reference_available,
+            dataset_extracur_events['IsPreviousWeekReferenceAvailable']
+        )
+        self.assertEqual(
+            extracur_events.is_next_week_reference_available,
+            dataset_extracur_events['IsNextWeekReferenceAvailable']
+        )
+        self.assertEqual(
+            extracur_events.is_current_week_reference_available,
+            dataset_extracur_events['IsCurrentWeekReferenceAvailable']
+        )
+        self.assertEqual(
+            date_to_str(extracur_events.previous_week_monday),
+            dataset_extracur_events['PreviousWeekMonday']
+        )
+        self.assertEqual(
+            date_to_str(extracur_events.next_week_monday),
+            dataset_extracur_events['NextWeekMonday']
+        )
+        self.assertEqual(
+            extracur_events.week_display_text,
+            dataset_extracur_events['WeekDisplayText']
+        )
+        self.assertEqual(
+            date_to_str(extracur_events.week_monday),
+            dataset_extracur_events['WeekMonday']
+        )
+        # TODO: assert lists
+        self.assertEqual(
+            len(extracur_events.earlier_events),
+            len(dataset_extracur_events['EarlierEvents'])
+        )
+        # TODO: assert lists
+        self.assertEqual(
+            len(extracur_events.days),
+            len(dataset_extracur_events['Days'])
+        )
 
 
 if __name__ == '__main__':
