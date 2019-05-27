@@ -1175,6 +1175,38 @@ class TestTypesParsing(unittest.TestCase):
                         dataset_years[k]['PublicDivisionAlias']
                     )
 
+    @patch('spbu.util.call_api', return_value=load_dataset('groups'))
+    def test_groups_parsing(self, call_api):
+        program_id = 10035
+        groups = spbu.get_groups(program_id=program_id)
+        dataset_groups = call_api()['Groups']
+
+        self.assertEqual(
+            len(groups),
+            len(dataset_groups)
+        )
+        for i in range(len(groups)):
+            self.assertEqual(
+                groups[i].student_group_id,
+                dataset_groups[i]['StudentGroupId']
+            )
+            self.assertEqual(
+                groups[i].student_group_name,
+                dataset_groups[i]['StudentGroupName']
+            )
+            self.assertEqual(
+                groups[i].student_group_study_form,
+                dataset_groups[i]['StudentGroupStudyForm']
+            )
+            self.assertEqual(
+                groups[i].student_group_profiles,
+                dataset_groups[i]['StudentGroupProfiles']
+            )
+            self.assertEqual(
+                groups[i].public_division_alias,
+                dataset_groups[i].get('PublicDivisionAlias')
+            )
+
 
 if __name__ == '__main__':
     unittest.main()
