@@ -4,7 +4,7 @@ from datetime import datetime, date, time
 from unittest.mock import patch
 
 import spbu
-from typing import Optional
+from typing import Optional, List, Union
 
 
 def load_dataset(filename: str):
@@ -68,7 +68,9 @@ class TestTypesParsing(unittest.TestCase):
                 jsn[i]['Item2']
             )
 
-    def _assertLocations(self, obj: list, jsn: list, educators: bool = False):
+    def _assertLocations(self, obj: List[Union[spbu.types.AddressLocation,
+                                               spbu.types.EventLocation]],
+                         jsn: List[dict]):
         self.assertEqual(
             len(obj),
             len(jsn)
@@ -102,7 +104,7 @@ class TestTypesParsing(unittest.TestCase):
                 obj[i].longitude_value,
                 jsn[i]['LongitudeValue']
             )
-            if educators:
+            if isinstance(obj[i], spbu.types.EventLocation):
                 self.assertEqual(
                     obj[i].educators_display_text,
                     jsn[i]['EducatorsDisplayText']
@@ -115,6 +117,151 @@ class TestTypesParsing(unittest.TestCase):
                     obj[i].educator_ids,
                     jsn[i]['EducatorIds']
                 )
+
+    def _assertExtracurEventContracts(self, obj: List[spbu.types.ExtracurEvent],
+                                      jsn: List[dict]):
+        self.assertEqual(
+            len(obj),
+            len(jsn)
+        )
+        for i in range(len(obj)):
+            obj[i]: spbu.types.ExtracurEvent
+            self.assertEqual(
+                obj[i].id,
+                jsn[i]['Id']
+            )
+            self.assertEqual(
+                datetime_to_str(obj[i].start),
+                jsn[i]['Start']
+            )
+            self.assertEqual(
+                datetime_to_str(obj[i].end),
+                jsn[i]['End']
+            )
+            self.assertEqual(
+                obj[i].subject,
+                jsn[i]['Subject']
+            )
+            self.assertEqual(
+                obj[i].time_interval_string,
+                jsn[i]['TimeIntervalString']
+            )
+            self.assertEqual(
+                obj[i].date_with_time_interval_string,
+                jsn[i]['DateWithTimeIntervalString']
+            )
+            self.assertEqual(
+                obj[i].locations_display_text,
+                jsn[i]['LocationsDisplayText']
+            )
+            self.assertEqual(
+                obj[i].educators_display_text,
+                jsn[i]['EducatorsDisplayText']
+            )
+            self.assertEqual(
+                obj[i].has_educators,
+                jsn[i]['HasEducators']
+            )
+            self.assertEqual(
+                obj[i].is_cancelled,
+                jsn[i]['IsCancelled']
+            )
+            self.assertEqual(
+                obj[i].has_the_same_time_as_previous_item,
+                jsn[i]['HasTheSameTimeAsPreviousItem']
+            )
+            self.assertEqual(
+                obj[i].contingent_units_display_test,
+                jsn[i]['ContingentUnitsDisplayTest']
+            )
+            self.assertEqual(
+                obj[i].is_study,
+                jsn[i]['IsStudy']
+            )
+            self.assertEqual(
+                obj[i].all_day,
+                jsn[i]['AllDay']
+            )
+            self.assertEqual(
+                obj[i].within_the_same_day,
+                jsn[i]['WithinTheSameDay']
+            )
+            self.assertEqual(
+                obj[i].display_date_and_time_interval_string,
+                jsn[i]['DisplayDateAndTimeIntervalString']
+            )
+            self.assertEqual(
+                obj[i].view_kind,
+                jsn[i]['ViewKind']
+            )
+            self.assertEqual(
+                obj[i].division_alias,
+                jsn[i]['DivisionAlias']
+            )
+            self.assertEqual(
+                obj[i].recurrence_index,
+                jsn[i]['RecurrenceIndex']
+            )
+            self.assertEqual(
+                obj[i].full_date_with_time_interval_string,
+                jsn[i]['FullDateWithTimeIntervalString']
+            )
+            self.assertEqual(
+                obj[i].year,
+                jsn[i]['Year']
+            )
+            self.assertEqual(
+                obj[i].show_year,
+                jsn[i]['ShowYear']
+            )
+            self.assertEqual(
+                obj[i].show_immediate,
+                jsn[i]['ShowImmediate']
+            )
+            self.assertEqual(
+                obj[i].is_show_immediate_hidden,
+                jsn[i]['IsShowImmediateHidden']
+            )
+            self.assertEqual(
+                obj[i].has_agenda,
+                jsn[i]['HasAgenda']
+            )
+            self.assertEqual(
+                obj[i].is_recurrence,
+                jsn[i]['IsRecurrence']
+            )
+            self.assertEqual(
+                obj[i].subkind_display_name,
+                jsn[i]['SubkindDisplayName']
+            )
+            self.assertEqual(
+                obj[i].order_index,
+                jsn[i]['OrderIndex']
+            )
+            self._assertLocations(
+                [obj[i].location],
+                [jsn[i]['Location']]
+            )
+            self.assertEqual(
+                obj[i].is_empty,
+                jsn[i]['IsEmpty']
+            )
+            self.assertEqual(
+                date_to_dt_str(obj[i].from_date),
+                jsn[i]['FromDate']
+            )
+            self.assertEqual(
+                obj[i].from_date_string,
+                jsn[i]['FromDateString']
+            )
+            self.assertEqual(
+                obj[i].is_phys,
+                jsn[i]['IsPhys']
+            )
+            self.assertEqual(
+                obj[i].responsible_person_contacts,
+                jsn[i]['ResponsiblePersonContacts']
+            )
 
     @patch('spbu.util.call_api', return_value=load_dataset('addresses'))
     def test_addresses_parsing(self, call_api):
@@ -452,8 +599,7 @@ class TestTypesParsing(unittest.TestCase):
                 )
                 self._assertLocations(
                     events[j].event_locations,
-                    dataset_events[j]['EventLocations'],
-                    educators=True
+                    dataset_events[j]['EventLocations']
                 )
                 self._assertContingentUnits(
                     events[j].contingent_unit_names,
@@ -626,8 +772,7 @@ class TestTypesParsing(unittest.TestCase):
                 )
                 self._assertLocations(
                     events[j].event_locations,
-                    dataset_events[j]['EventLocations'],
-                    educators=True
+                    dataset_events[j]['EventLocations']
                 )
 
     @patch('spbu.util.call_api',
@@ -698,11 +843,22 @@ class TestTypesParsing(unittest.TestCase):
             extracur_events.show_grouping_captions,
             dataset_extracur_events.get('ShowGroupingCaptions', False)
         )
-        # TODO: assert lists
         self.assertEqual(
             len(extracur_events.event_groupings),
             len(dataset_extracur_events.get('EventGroupings', []))
         )
+        events_by_kind = extracur_events.event_groupings
+        dataset_events_by_kind = dataset_extracur_events.get('EventGroupings',
+                                                             [])
+        for i in range(len(events_by_kind)):
+            self.assertEqual(
+                events_by_kind[i].caption,
+                dataset_events_by_kind[i]['Caption']
+            )
+            self._assertExtracurEventContracts(
+                events_by_kind[i].events,
+                dataset_extracur_events[i]['Events']
+            )
         self.assertEqual(
             extracur_events.is_previous_week_reference_available,
             dataset_extracur_events['IsPreviousWeekReferenceAvailable']
@@ -731,16 +887,29 @@ class TestTypesParsing(unittest.TestCase):
             date_to_str(extracur_events.week_monday),
             dataset_extracur_events['WeekMonday']
         )
-        # TODO: assert lists
-        self.assertEqual(
-            len(extracur_events.earlier_events),
-            len(dataset_extracur_events['EarlierEvents'])
+        self._assertExtracurEventContracts(
+            extracur_events.earlier_events,
+            dataset_extracur_events['EarlierEvents']
         )
-        # TODO: assert lists
         self.assertEqual(
             len(extracur_events.days),
             len(dataset_extracur_events['Days'])
         )
+        days = extracur_events.days
+        dataset_days = dataset_extracur_events['Days']
+        for i in range(len(days)):
+            self.assertEqual(
+                date_to_dt_str(days[i].day),
+                dataset_days[i]['Day']
+            )
+            self.assertEqual(
+                days[i].day_string,
+                dataset_days[i]['DayString']
+            )
+            self._assertExtracurEventContracts(
+                days[i].day_events,
+                dataset_days[i]['DayEvents']
+            )
 
 
 if __name__ == '__main__':
