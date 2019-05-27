@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 from requests import get, Response
@@ -6,7 +7,11 @@ from spbu.consts import APIMethods, BASE_URL
 from spbu.types import ApiException
 
 
-def _make_request(url: str, params: dict = None, timeout: int = 5) -> Response:
+default_timeout = int(os.getenv('SPBU_TT_API_REQUEST_TIMEOUT', '5'))
+
+
+def _make_request(url: str, params: dict = None,
+                  timeout: int = default_timeout) -> Response:
     return get(url, params, timeout=timeout)
 
 
