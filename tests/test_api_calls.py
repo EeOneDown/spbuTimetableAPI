@@ -139,7 +139,7 @@ class TestApiCalls(unittest.TestCase):
         aliases = ("POLS", "SOCL", "INTD", "GSOM")
         for alias in aliases:
             self._assertIsListOfInstances(
-                spbu.get_programs(alias),
+                spbu.get_study_levels(alias),
                 spbu.types.SDPLStudyLevel
             )
 
@@ -205,7 +205,7 @@ class TestApiCalls(unittest.TestCase):
     def test_program_levels_fail(self):
         self.assertRaises(
             spbu.ApiException,
-            spbu.get_programs,
+            spbu.get_study_levels,
             alias="TEST"
         )
 

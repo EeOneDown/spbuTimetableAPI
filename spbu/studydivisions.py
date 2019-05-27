@@ -14,7 +14,7 @@ def get_study_divisions() -> List[SDStudyDivision]:
     ]
 
 
-def get_programs(alias: str) -> List[SDPLStudyLevel]:
+def get_study_levels(alias: str) -> List[SDPLStudyLevel]:
     return [
         SDPLStudyLevel.de_json(sl)
         for sl in util.call_api(

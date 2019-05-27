@@ -1109,6 +1109,72 @@ class TestTypesParsing(unittest.TestCase):
                 dataset_divisions[i]['Name']
             )
 
+    @patch('spbu.util.call_api', return_value=load_dataset('study_levels'))
+    def test_study_levels_parsing(self, call_api):
+        alias = 'LAWS'
+        levels = spbu.get_study_levels(alias=alias)
+        dataset_levels = call_api()
+
+        self.assertEqual(
+            len(levels),
+            len(dataset_levels)
+        )
+        for i in range(len(levels)):
+            self.assertEqual(
+                levels[i].study_level_name,
+                dataset_levels[i]['StudyLevelName']
+            )
+            self.assertEqual(
+                levels[i].study_level_name_english,
+                dataset_levels[i]['StudyLevelNameEnglish']
+            )
+            self.assertEqual(
+                levels[i].has_course6,
+                dataset_levels[i]['HasCourse6']
+            )
+            self.assertEqual(
+                len(levels[i].study_program_combinations),
+                len(dataset_levels[i]['StudyProgramCombinations'])
+            )
+            combinations = levels[i].study_program_combinations
+            dataset_combinations = dataset_levels[i]['StudyProgramCombinations']
+            for j in range(len(combinations)):
+                self.assertEqual(
+                    combinations[j].name,
+                    dataset_combinations[j]['Name']
+                )
+                self.assertEqual(
+                    combinations[j].name_english,
+                    dataset_combinations[j]['NameEnglish']
+                )
+                self.assertEqual(
+                    len(combinations[j].admission_years),
+                    len(dataset_combinations[j]['AdmissionYears'])
+                )
+                years = combinations[j].admission_years
+                dataset_years = dataset_combinations[j]['AdmissionYears']
+                for k in range(len(years)):
+                    self.assertEqual(
+                        years[k].study_program_id,
+                        dataset_years[k]['StudyProgramId']
+                    )
+                    self.assertEqual(
+                        years[k].year_name,
+                        dataset_years[k]['YearName']
+                    )
+                    self.assertEqual(
+                        years[k].year_number,
+                        dataset_years[k]['YearNumber']
+                    )
+                    self.assertEqual(
+                        years[k].is_empty,
+                        dataset_years[k]['IsEmpty']
+                    )
+                    self.assertEqual(
+                        years[k].public_division_alias,
+                        dataset_years[k]['PublicDivisionAlias']
+                    )
+
 
 if __name__ == '__main__':
     unittest.main()
