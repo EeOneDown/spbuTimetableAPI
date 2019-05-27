@@ -1,61 +1,50 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+from datetime import date
+from typing import List
 
-from requests import get
-
-from spbu.consts import main_url
-from spbu.types import ApiException
-
-
-def get_educator_events(educator_id, next_term=False, timeout=5):
-    """
-    Gets an educator's events for the current study term.
-    :param educator_id: The educator's id.
-    :type educator_id: int
-    :param next_term: (Optional) Whether to show the events for the next term.
-    :type next_term: bool
-    :param timeout: (Optional) request timeout in seconds
-    :type timeout: int
-    :return: The result parsed to a JSON dictionary.
-    :rtype: dict
-    :raises spbu.ApiException: if `response status code` is not 200.
-    :raises requests.exceptions.ReadTimeout: if the request exceeds the timeout.
-    """
-    sub_url = "educators/{0}/events"
-    params = {"showNextTerm": int(next_term)}
-
-    result = get(url=main_url + sub_url.format(educator_id),
-                 params=params,
-                 timeout=timeout)
-
-    if result.status_code != 200:
-        msg = 'The server returned HTTP {0} {1}. Response body:\n[{2}]' \
-            .format(result.status_code, result.reason, result.text)
-        raise ApiException(msg, "Get educator events", result)
-
-    return result.json()
+from . import util
+from .consts import APIMethods, LessonsTypes
+from .types import EducatorEventsTerm, Educator, EducatorEvents
 
 
-def search_educator(query, timeout=5):
-    """
-    Gets educators by searching their's last name or a part of last name.
-    :param query: The last name search query.
-    :type query: str
-    :param timeout: (Optional) request timeout in seconds
-    :type timeout: int
-    :return: The result parsed to a JSON dictionary.
-    :rtype: dict
-    :raises spbu.ApiException: if `response status code` is not 200.
-    :raises requests.exceptions.ReadTimeout: if the request exceeds the timeout.
-    """
-    sub_url = "educators/search/{0}"
+def get_educator_term_events(educator_id: int,
+                             next_term: bool = False) -> EducatorEventsTerm:
+    return EducatorEventsTerm.de_json(
+        util.call_api(
+            method=APIMethods.E_EVENTS,
+            path_values={
+                "id": educator_id
+            },
+            params={
+                "showNextTerm": int(next_term)
+            }
+        )
+    )
 
-    result = get(url=main_url + sub_url.format(query),
-                 timeout=timeout)
 
-    if result.status_code != 200:
-        msg = 'The server returned HTTP {0} {1}. Response body:\n[{2}]' \
-            .format(result.status_code, result.reason, result.text)
-        raise ApiException(msg, "Search educator", result)
+def get_educator_events(educator_id: int, _from: date, _to: date,
+                        lessons_type: LessonsTypes = LessonsTypes.UNKNOWN) -> EducatorEvents:
+    return EducatorEvents.de_json(
+        util.call_api(
+            method=APIMethods.E_EVENTS_FROM_TO,
+            path_values={
+                "id": educator_id,
+                "from": _from,
+                "to": _to
+            },
+            params={
+                "timetable": lessons_type.value
+            }
+        )
+    )
 
-    return result.json()
+
+def search_educator(query: str) -> List[Educator]:
+    return [
+        Educator.de_json(ed)
+        for ed in util.call_api(
+            method=APIMethods.E_SEARCH,
+            path_values={
+                "query": query
+            }
+        )["Educators"]
+    ]

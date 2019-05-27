@@ -8,7 +8,7 @@ def readme():
 
 
 setup(name='spbuTimetableAPI',
-      version='1.0.2',
+      version='1.0.3',
       description='Python SPbU TimeTable API.',
       long_description=readme(),
       author='EeOneDown',
@@ -21,14 +21,7 @@ setup(name='spbuTimetableAPI',
       install_requires=['requests'],
       classifiers=[
           'Development Status :: 5 - Production/Stable',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.6',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
-          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
           'Environment :: Console',
           'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
       ]

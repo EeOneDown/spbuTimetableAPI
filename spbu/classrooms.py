@@ -1,52 +1,37 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from datetime import datetime
 
-from requests import get
+from . import util
+from .consts import APIMethods
+from .types import ClassroomBusyness, ClassroomEvents
 
-from spbu.consts import main_url
-from spbu.types import ApiException
 
-
-def _create_string_from_datetime(dt):
-    """
-    Creates a specific string from a datetime object.
-    :param dt: A datetime object.
-    :type dt: datetime
-    :return: Specific sting.
-    :rtype: str
-    """
+def _create_string_from_datetime(dt: datetime) -> str:
     return dt.strftime("%Y%m%d%H%M")
 
 
-def is_classroom_busy(oid, start, end, timeout=5):
-    """
-    Checks whether a given classroom is busy in a specified interval
-    or it's part.
-    :param oid: The classroom's id.
-    :type oid: str
-    :param start: The interval's start.
-    :type start: datetime
-    :param end: The interval's end.
-    :type end: datetime
-    :param timeout: (Optional) request timeout in seconds
-    :type timeout: int
-    :return: The result parsed to a JSON dictionary.
-    :rtype: dict
-    :raises spbu.ApiException: if `response status code` is not 200.
-    :raises requests.exceptions.ReadTimeout: if the request exceeds the timeout.
-    """
-    sub_url = "classrooms/{0}/isbusy/{1}/{2}"
-    start = _create_string_from_datetime(start)
-    end = _create_string_from_datetime(end)
+def is_classroom_busy(oid: str, start: datetime,
+                      end: datetime) -> ClassroomBusyness:
+    return ClassroomBusyness.de_json(
+        util.call_api(
+            method=APIMethods.C_IS_BUSY,
+            path_values={
+                "oid": oid,
+                "start": _create_string_from_datetime(start),
+                "end": _create_string_from_datetime(end)
+            }
+        )
+    )
 
-    result = get(url=main_url + sub_url.format(oid, start, end),
-                 timeout=timeout)
 
-    if result.status_code != 200:
-        msg = 'The server returned HTTP {0} {1}. Response body:\n[{2}]' \
-            .format(result.status_code, result.reason, result.text)
-        raise ApiException(msg, "Is classroom busy", result)
-
-    return result.json()
+def get_classroom_events(oid: str, _from: datetime,
+                         _to: datetime) -> ClassroomEvents:
+    return ClassroomEvents.de_json(
+        util.call_api(
+            method=APIMethods.C_EVENTS,
+            path_values={
+                "oid": oid,
+                "from": _create_string_from_datetime(_from),
+                "to": _create_string_from_datetime(_to)
+            }
+        )
+    )
