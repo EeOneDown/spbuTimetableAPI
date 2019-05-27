@@ -38,7 +38,8 @@ def time_to_str(t: Optional[time]) -> Optional[str]:
 
 
 class TestTypesParsing(unittest.TestCase):
-    def _assertEducators(self, obj: list, jsn: list):
+    def _assertEducators(self, obj: List[spbu.types.EducatorId],
+                         jsn: List[dict]):
         self.assertEqual(
             len(obj),
             len(jsn)
@@ -53,7 +54,8 @@ class TestTypesParsing(unittest.TestCase):
                 jsn[i]['Item2']
             )
 
-    def _assertContingentUnits(self, obj: list, jsn: list):
+    def _assertContingentUnits(self, obj: List[spbu.types.ContingentUnitName],
+                               jsn: List[dict]):
         self.assertEqual(
             len(obj),
             len(jsn)
@@ -290,7 +292,7 @@ class TestTypesParsing(unittest.TestCase):
     @patch('spbu.util.call_api', return_value=load_dataset('classrooms'))
     def test_classrooms_parsing(self, call_api):
         oid = '6572bd45-973c-4075-9d23-9dc728b37828'
-        classrooms = spbu.get_classrooms(oid)
+        classrooms = spbu.get_classrooms(oid=oid)
         dataset_classrooms = call_api()
 
         self.assertEqual(len(classrooms), len(dataset_classrooms))
@@ -325,9 +327,9 @@ class TestTypesParsing(unittest.TestCase):
     def test_classroom_busyness_parsing(self, call_api):
         oid = '8ba13bec-5213-4114-bd77-fc202c6aa4e5'
         is_busy = spbu.is_classroom_busy(
-            oid,
-            datetime(year=2019, month=5, day=20, hour=10, minute=0),
-            datetime(year=2019, month=5, day=20, hour=12, minute=0)
+            oid=oid,
+            start=datetime(year=2019, month=5, day=20, hour=10, minute=0),
+            end=datetime(year=2019, month=5, day=20, hour=12, minute=0)
         )
         dataset_is_busy = call_api()
 
@@ -352,9 +354,9 @@ class TestTypesParsing(unittest.TestCase):
     def test_classroom_events_parsing(self, call_api):
         oid = '8ba13bec-5213-4114-bd77-fc202c6aa4e5'
         classroom_events = spbu.get_classroom_events(
-            oid,
-            datetime(year=2019, month=5, day=20, hour=8, minute=0),
-            datetime(year=2019, month=5, day=25, hour=11, minute=0)
+            oid=oid,
+            _from=datetime(year=2019, month=5, day=20, hour=8, minute=0),
+            _to=datetime(year=2019, month=5, day=25, hour=11, minute=0)
         )
         dataset_classroom_events = call_api()
 
@@ -448,7 +450,7 @@ class TestTypesParsing(unittest.TestCase):
     @patch('spbu.util.call_api', return_value=load_dataset('educators'))
     def test_educators_parsing(self, call_api):
         query = 'Смирнов'
-        educators = spbu.search_educator(query)
+        educators = spbu.search_educator(query=query)
         educators_dataset = call_api()['Educators']
 
         self.assertEqual(
@@ -488,7 +490,7 @@ class TestTypesParsing(unittest.TestCase):
            return_value=load_dataset('educator_events_term'))
     def test_educator_events_term_parsing(self, call_api):
         educator_id = 2254
-        events_term = spbu.get_educator_term_events(educator_id)
+        events_term = spbu.get_educator_term_events(educator_id=educator_id)
         events_term_dataset = call_api()
 
         self.assertEqual(
@@ -612,7 +614,7 @@ class TestTypesParsing(unittest.TestCase):
         from_date = date(2019, 4, 1)
         to_date = date(2019, 4, 8)
         educator_events = spbu.get_educator_events(
-            educator_id, from_date, to_date
+            educator_id=educator_id, _from=from_date, _to=to_date
         )
         dataset_educator_events = call_api()
 
@@ -910,6 +912,179 @@ class TestTypesParsing(unittest.TestCase):
                 days[i].day_events,
                 dataset_days[i]['DayEvents']
             )
+
+    @patch('spbu.util.call_api', return_value=load_dataset('groups_events'))
+    def test_groups_events_parsing(self, call_api):
+        group_id = 19082
+        group_events = spbu.get_group_events(group_id=group_id)
+        dataset_group_events = call_api()
+
+        self.assertEqual(
+            group_events.student_group_id,
+            dataset_group_events['StudentGroupId']
+        )
+        self.assertEqual(
+            group_events.student_group_display_name,
+            dataset_group_events['StudentGroupDisplayName']
+        )
+        self.assertEqual(
+            group_events.timetable_display_name,
+            dataset_group_events['TimeTableDisplayName']
+        )
+        self.assertEqual(
+            date_to_str(group_events.previous_week_monday),
+            dataset_group_events['PreviousWeekMonday']
+        )
+        self.assertEqual(
+            date_to_str(group_events.next_week_monday),
+            dataset_group_events['NextWeekMonday']
+        )
+        self.assertEqual(
+            group_events.is_previous_week_reference_available,
+            dataset_group_events['IsPreviousWeekReferenceAvailable']
+        )
+        self.assertEqual(
+            group_events.is_next_week_reference_available,
+            dataset_group_events['IsNextWeekReferenceAvailable']
+        )
+        self.assertEqual(
+            group_events.is_current_week_reference_available,
+            dataset_group_events['IsCurrentWeekReferenceAvailable']
+        )
+        self.assertEqual(
+            group_events.week_display_text,
+            dataset_group_events['WeekDisplayText']
+        )
+        self.assertEqual(
+            date_to_str(group_events.week_monday),
+            dataset_group_events['WeekMonday']
+        )
+        days = group_events.days
+        dataset_days = dataset_group_events['Days']
+        self.assertEqual(
+            len(days),
+            len(dataset_days)
+        )
+        for i in range(len(days)):
+            self.assertEqual(
+                date_to_dt_str(days[i].day),
+                dataset_days[i]['Day']
+            )
+            self.assertEqual(
+                days[i].day_string,
+                dataset_days[i]['DayString']
+            )
+            events = days[i].day_study_events
+            dataset_events = dataset_days[i]['DayStudyEvents']
+            self.assertEqual(
+                len(events),
+                len(dataset_events)
+            )
+            for j in range(len(events)):
+                self.assertEqual(
+                    events[j].study_events_timetable_kind_code,
+                    dataset_events[j]['StudyEventsTimeTableKindCode']
+                )
+                self.assertEqual(
+                    datetime_to_str(events[j].start),
+                    dataset_events[j]['Start']
+                )
+                self.assertEqual(
+                    datetime_to_str(events[j].end),
+                    dataset_events[j]['End']
+                )
+                self.assertEqual(
+                    events[j].subject,
+                    dataset_events[j]['Subject']
+                )
+                self.assertEqual(
+                    events[j].time_interval_string,
+                    dataset_events[j]['TimeIntervalString']
+                )
+                self.assertEqual(
+                    events[j].date_with_time_interval_string,
+                    dataset_events[j]['DateWithTimeIntervalString']
+                )
+                self.assertEqual(
+                    events[j].display_date_and_time_interval_string,
+                    dataset_events[j]['DisplayDateAndTimeIntervalString']
+                )
+                self.assertEqual(
+                    events[j].locations_display_text,
+                    dataset_events[j]['LocationsDisplayText']
+                )
+                self.assertEqual(
+                    events[j].educators_display_text,
+                    dataset_events[j]['EducatorsDisplayText']
+                )
+                self.assertEqual(
+                    events[j].has_educators,
+                    dataset_events[j]['HasEducators']
+                )
+                self.assertEqual(
+                    events[j].is_cancelled,
+                    dataset_events[j]['IsCancelled']
+                )
+                self.assertEqual(
+                    events[j].contingent_unit_name,
+                    dataset_events[j]['ContingentUnitName']
+                )
+                self.assertEqual(
+                    events[j].division_and_course,
+                    dataset_events[j]['DivisionAndCourse']
+                )
+                self.assertEqual(
+                    events[j].is_assigned,
+                    dataset_events[j]['IsAssigned']
+                )
+                self.assertEqual(
+                    events[j].time_was_changed,
+                    dataset_events[j]['TimeWasChanged']
+                )
+                self.assertEqual(
+                    events[j].locations_were_changed,
+                    dataset_events[j]['LocationsWereChanged']
+                )
+                self.assertEqual(
+                    events[j].educators_were_reassigned,
+                    dataset_events[j]['EducatorsWereReassigned']
+                )
+                self.assertEqual(
+                    events[j].elective_disciplines_count,
+                    dataset_events[j]['ElectiveDisciplinesCount']
+                )
+                self.assertEqual(
+                    events[j].is_elective,
+                    dataset_events[j]['IsElective']
+                )
+                self.assertEqual(
+                    events[j].has_the_same_time_as_previous_item,
+                    dataset_events[j]['HasTheSameTimeAsPreviousItem']
+                )
+                self.assertEqual(
+                    events[j].contingent_units_display_test,
+                    dataset_events[j]['ContingentUnitsDisplayTest']
+                )
+                self.assertEqual(
+                    events[j].is_study,
+                    dataset_events[j]['IsStudy']
+                )
+                self.assertEqual(
+                    events[j].all_day,
+                    dataset_events[j]['AllDay']
+                )
+                self.assertEqual(
+                    events[j].within_the_same_day,
+                    dataset_events[j]['WithinTheSameDay']
+                )
+                self._assertLocations(
+                    events[j].event_locations,
+                    dataset_events[j]['EventLocations']
+                )
+                self._assertEducators(
+                    events[j].educator_ids,
+                    dataset_events[j]['EducatorIds']
+                )
 
 
 if __name__ == '__main__':
