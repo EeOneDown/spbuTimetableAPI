@@ -1086,6 +1086,29 @@ class TestTypesParsing(unittest.TestCase):
                     dataset_events[j]['EducatorIds']
                 )
 
+    @patch('spbu.util.call_api', return_value=load_dataset('study_divisions'))
+    def test_study_divisions_parsing(self, call_api):
+        divisions = spbu.get_study_divisions()
+        dataset_divisions = call_api()
+
+        self.assertEqual(
+            len(divisions),
+            len(dataset_divisions)
+        )
+        for i in range(len(divisions)):
+            self.assertEqual(
+                divisions[i].oid,
+                dataset_divisions[i]['Oid']
+            )
+            self.assertEqual(
+                divisions[i].alias,
+                dataset_divisions[i]['Alias']
+            )
+            self.assertEqual(
+                divisions[i].name,
+                dataset_divisions[i]['Name']
+            )
+
 
 if __name__ == '__main__':
     unittest.main()
