@@ -1,21 +1,24 @@
 language: python
 matrix:
   include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
-install: "pip install -r requirements.txt"
+  - python: 3.7
+    dist: xenial
+    sudo: true
+install: pip install -r requirements.txt
 script:
-  - python setup.py install
-  - cd tests/
-  - py.test
-  - cd ..
+- python setup.py install
+- cd tests/
+- py.test
+- cd ..
 deploy:
 - provider: pypi
-  user: "EeOneDown"
+  user: EeOneDown
   password:
-    secure: "sbecpA2+gGLRWDr9cwVfGqcY2j+G7L5CkflKGcQ9DCqJL+63tvRt875Ch3P+Ty4ADuP2q2TNd3KZKsyVzZQcCfZWlUuRL9VOTcj/vRhwEAJiI2cQ8f4eq/Qqu6E6e2IJRK0zDM48djurBylUdM0qPaf6wQ3rXorYMlbUotZNg0gFlIPKhIaGZQ0XaxiUKxK/T7qTuVQxpDGhk2yDJCXusMP2zA7d2UAwUxcs0HMIbr4EeZvMpcdubSa/ZPKmPpgx3Gf7Ttf5KcsjSHK9kdlQUjEullmnmUithZPRIpXnrJFoDWo9l+n09E3Ov3jc9nL0TLws8XeZLQ3dMZrgD4gy2MkSzTYAz0zlB4XkOwu3NieV044je92fSwwfhvuv7Ig6C2MXCtks23WMi+X4R59Pm7Vq0EJu0/xxhxaVuvk4assrvP+q3wD/Ocac9lTSPpeGJr4IM2pLdr1iWxxG2kqGuz+imWk4d6kn4q0mtX5TWaJv6oMb3Lgne7m6WMuIWkpe32c/uT26sjAuGuuWjFq6UsKVVxQYSe6Cf+YnScA4a95fBoEXNj+n8vh9c1qPBoH811t3aAKF0jTznYRMB7YgZMznQ2tFuLpWSU1CvKovsxodOky1k2h7Yp5YX5qQHrppC7GgoaCBxXvkDv6nD2KmTWoHodc6C2NR4qFnKmLbq2k="
-  true:
+    secure: sbecpA2+gGLRWDr9cwVfGqcY2j+G7L5CkflKGcQ9DCqJL+63tvRt875Ch3P+Ty4ADuP2q2TNd3KZKsyVzZQcCfZWlUuRL9VOTcj/vRhwEAJiI2cQ8f4eq/Qqu6E6e2IJRK0zDM48djurBylUdM0qPaf6wQ3rXorYMlbUotZNg0gFlIPKhIaGZQ0XaxiUKxK/T7qTuVQxpDGhk2yDJCXusMP2zA7d2UAwUxcs0HMIbr4EeZvMpcdubSa/ZPKmPpgx3Gf7Ttf5KcsjSHK9kdlQUjEullmnmUithZPRIpXnrJFoDWo9l+n09E3Ov3jc9nL0TLws8XeZLQ3dMZrgD4gy2MkSzTYAz0zlB4XkOwu3NieV044je92fSwwfhvuv7Ig6C2MXCtks23WMi+X4R59Pm7Vq0EJu0/xxhxaVuvk4assrvP+q3wD/Ocac9lTSPpeGJr4IM2pLdr1iWxxG2kqGuz+imWk4d6kn4q0mtX5TWaJv6oMb3Lgne7m6WMuIWkpe32c/uT26sjAuGuuWjFq6UsKVVxQYSe6Cf+YnScA4a95fBoEXNj+n8vh9c1qPBoH811t3aAKF0jTznYRMB7YgZMznQ2tFuLpWSU1CvKovsxodOky1k2h7Yp5YX5qQHrppC7GgoaCBxXvkDv6nD2KmTWoHodc6C2NR4qFnKmLbq2k=
+  on:
     tags: true
     python: 3.7
     repo: EeOneDown/spbuTimetableAPI
+notifications:
+  slack:
+    secure: Uxc8yf4vczl8rNA/SteXupGIZceG81y6Ts3+HDoMYliecEgblmQt22fQtKbYptz568fd72Lp6lUgnFR6bnJGNZP/tH+s74HvmgqK+h+s6Txo+Gm1gL3OT9dWOGB8DZZJ4mt1WgtMqhd1zg2C2BwMWaUiGdgqAKF+T6PEtA5y/7wfFfRt/lMW2GHRRJPF+D42tcD2UHFtGzF9S66yJkT74HkL0bpwsxm6gaHb1cuiJMY/SA8cPMRHj1TsVP+A9U+1TgbKjOrl4oi7YU+1NeyDC6HIfV2CNOsS4eqfbLDtHee3OcDzAoDPXdOwvi7l3CtGDcmWWZ8ZKXE8TGqNIP2/ag0dhlpOshHM2xd26qvKbAUIW9dSP9mk+Xm9wzBqAdUm9+SvdXwnHhe4Gj1vgv6ZkO0yWxP38bVCHsR30dS1s9g3vw8r2pelliL212dYfnZkjmfRDnWmkqaT+ZZxtri/zgjlqN9869ENVIf4S6uiWy/UF4JVDtwq85A6sBZbiWSJlp1XIyOPogoSUGDPPQMnYSQf16XxnalsvDb5JYYuvWQeMjaLcxY9xtJ12bJpwn49lE5Cr86166gUs1Ft6qDIB0gojBBo84PxD3oez41VgTgJOBezTPoS4u0K6lx31NqrMKSUKIj5PornQtAhFP/EqOyVNn8Oc66B0tT86Uj6Yt0=
