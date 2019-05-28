@@ -10,7 +10,7 @@ def readme():
 setup(name='spbuTimetableAPI',
       version='1.0.3',
       description='Python SPbU TimeTable API.',
-      long_description=readme(),
+      long_description='',
       author='EeOneDown',
       author_email='st049378@student.spbu.ru',
       url='https://github.com/EeOneDown/spbuTimetableAPI',
