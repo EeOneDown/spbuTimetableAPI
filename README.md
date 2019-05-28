@@ -9,7 +9,7 @@ Python implementation for the [SPbU TimeTable API](https://timetable.spbu.ru/hel
 
 ## Getting started.
 
-This API is tested with Python 3.6 and Python 3.7.
+This API is tested with Python 3.7.
 There are two ways to install the library:
 
 * Installation using pip (a Python package manager)*:
