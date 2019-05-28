@@ -9,6 +9,7 @@ script:
   - python setup.py install
   - cd tests/
   - py.test
+before_deploy: "cd ~/"
 deploy:
 - provider: pypi
   user: "EeOneDown"
