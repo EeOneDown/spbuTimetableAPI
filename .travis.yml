@@ -10,6 +10,8 @@ script:
 - cd tests/
 - py.test
 - cd ..
+notifications:
+  slack: spbu4u:Guuk1TXyOkCHaI9aSp8WTNw2
 deploy:
 - provider: pypi
   user: EeOneDown
@@ -19,6 +21,3 @@ deploy:
     tags: true
     python: 3.7
     repo: EeOneDown/spbuTimetableAPI
-notifications:
-  slack:
-    secure: l8v/BP/EMgd/ZFVOTf+ZtlNwaXIBspUgQIG3nkqKXSbX0AvO+Q1CrvbVwidrpOBQ7yMCyjFDPjPCmxVERmzgwLHEm/DnAyap2x6mSCgLsWG8eFszxCR+8/L8Ehlk/zx29vmUj53oKmKTRvWDba0rVDhLsdvjJP5UZ+iJCmybDQHVGHEwPBrsm2HHH7pZ7AXixYR+vXHlaJ8LUg5S85C1YdIo7D3RbCbS2pXtIWY8W8Gu08mVv/28zy+XRQaUEX3lQOZPNNiIw0gmJLexVgX/avdfelzYp+osqGc3DzsARr0oToBl9xGwkOa9WMWyfuSIXvJ5F1nuQcOJyPGc2wxtxz+m1IarW50u3A5yIBgYZGIpcUXj0Fi/756MM3yGiGOmvSJ71w7eP0TPQ/u42MXdrhSN/a7Kw5PBmL7MopEfj0moPmm3/lFuCGs8eoNZxRoYT7DaP4AwY+UP+zt03rHDLSgyKZSTPZ1xb6sfQ66VyJ8srmfcZ8Z42vXT/+mnCni4rB9g3ey2+Gyb2aunA1Aclh85dddhrG7IN3SCeBv+zOXfauQEqM9uNZCizUYdkvUcQgwxNChlYC5098nE2At9C1VcE/7hJYabbtm/7ZdE/1wTi39cFmrCOycu+89sHXZc8qGqgd2WoxDnibaKmIsccUfiJI6uPDzALfbSIMnR9Yk=
